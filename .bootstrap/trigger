@@ -1,1 +1,1 @@
-Trigger PELAGIC source restore after switching to explicit archive chunk order and SHA verification.
+Trigger PELAGIC restore with verified section-wise reconstruction of archive chunk 03.
