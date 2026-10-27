@@ -1,0 +1,80 @@
+name: Restore and validate PELAGIC V4
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".bootstrap/releasepart11"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  restore-and-verify:
+    if: `!${{ contains(github.event.head_commit.message, '[pelagic-bootstrap-complete]') }}`
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout bootstrap files
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+      - name: Restore source archive and public fish assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f .bootstrap/releasepart00
+          test -f .bootstrap/releasepart11
+          cat .bootstrap/releasepart* > /tmp/pelagic-source.tar.xz.b64
+          base64 --decode /tmp/pelagic-source.tar.xz.b64 > /tmp/pelagic-source.tar.xz
+          xz --test /tmp/pelagic-source.tar.xz
+          tar -xJf /tmp/pelagic-source.tar.xz -C .
+          mkdir -p public/assets/fish
+          curl --fail --location --retry 3 --retry-delay 2 \
+            https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Assets/main/Models/BarramundiFish/glTF-Binary/BarramundiFish.glb \
+            --output public/assets/fish/barramundi-hero.glb
+          curl --fail --location --retry 3 --retry-delay 2 \
+            https://raw.githubusercontent.com/BabylonJS/Assets/master/meshes/Demos/UnderWaterScene/fish/greySnapper_vertColor.glb \
+            --output public/assets/fish/grey-snapper.glb
+          test -s public/assets/fish/barramundi-hero.glb
+          test -s public/assets/fish/grey-snapper.glb
+          # Match the repository ledger to the unmodified upstream model restored here.
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path("ASSET_CREDITS.md")
+          s = p.read_text()
+          old = """- Repacked textures losslessly/visually-losslessly from `11.91 MB` raw to `4.02 MB` (`baseColor` RGBA `PNG32` `1536×1536` preserving translucent fin-ray alpha; `occlusionRoughnessMetallic` and `normal` `PNG24` `1024×1024`).
+          - Bound at runtime"""
+          new = """- The deploy bootstrap restores the original upstream GLB from the official Khronos repository. The optimized 4.02 MB local variant supplied in the user ZIP is not distributed through the GitHub bootstrap because binary attachments are not transferred through text chunks; therefore the checked-in asset is the upstream original (larger download).
+          - Bound at runtime"""
+          if old in s:
+              s = s.replace(old, new)
+          p.write_text(s)
+          PY
+          # Do not commit the temporary transport chunks into the application source tree.
+          rm -rf .bootstrap
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No source changes to commit."
+          else
+            git commit -m "feat: publish PELAGIC V4 source [pelagic-bootstrap-complete]"
+            git push origin HEAD:main
+          fi
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+      - name: Unit tests
+        run: npm test
+      - name: TypeScript typecheck
+        run: npm run typecheck
+      - name: Production build
+        run: npm run build
+      - name: Verify deployed asset files were included in dist
+        run: |
+          test -s dist/assets/fish/barramundi-hero.glb
+          test -s dist/assets/fish/grey-snapper.glb
