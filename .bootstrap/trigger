@@ -1,1 +1,1 @@
-Trigger PELAGIC archive restoration again after repairing the missing releasepart03 tail.
+Trigger PELAGIC source restore after switching to explicit archive chunk order and SHA verification.
