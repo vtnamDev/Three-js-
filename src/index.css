@@ -1,0 +1,41 @@
+@import "tailwindcss";
+
+@theme {
+  --font-serif: "Cormorant Garamond", Georgia, Cambria, "Times New Roman", serif;
+  --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+@layer base {
+  html {
+    background-color: #020813;
+    color: #e6f1f8;
+    font-family: var(--font-sans);
+    overscroll-behavior-y: none;
+  }
+
+  body {
+    margin: 0;
+    background-color: #020813;
+    overflow-x: hidden;
+  }
+}
+
+@keyframes pelagicIndeterminate {
+  0% {
+    transform: translateX(-110%);
+  }
+  100% {
+    transform: translateX(260%);
+  }
+}
+
+.pelagic-indeterminate-bar {
+  animation: pelagicIndeterminate 1.45s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pelagic-indeterminate-bar {
+    animation-duration: 3.2s;
+  }
+}

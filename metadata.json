@@ -1,0 +1,6 @@
+{
+  "name": "PELAGIC — The Deep Descent",
+  "description": "A cinematic 3D WebGL ocean descent experience driven by scroll, following a swimming pelagic fish through eight distinct depth zones from sunlit surface waters to the hadal trench.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
