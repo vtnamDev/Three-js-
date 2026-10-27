@@ -31,7 +31,10 @@ jobs:
           test -f .bootstrap/releasepart11
           cat \
             .bootstrap/releasepart00 .bootstrap/releasepart01 .bootstrap/releasepart02 \
-            .bootstrap/releasepart03 .bootstrap/releasepart03-tail \
+            .bootstrap/releasepart03a .bootstrap/releasepart03b1 \
+            .bootstrap/releasepart03b2a .bootstrap/releasepart03b2b \
+            .bootstrap/releasepart03b3 .bootstrap/releasepart03b4 \
+            .bootstrap/releasepart03b5 .bootstrap/releasepart03b6 \
             .bootstrap/releasepart04 .bootstrap/releasepart05 .bootstrap/releasepart06 \
             .bootstrap/releasepart07 .bootstrap/releasepart08 .bootstrap/releasepart09 \
             .bootstrap/releasepart10 .bootstrap/releasepart11 \
