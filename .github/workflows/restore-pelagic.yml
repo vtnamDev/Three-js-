@@ -12,7 +12,7 @@ permissions:
 
 jobs:
   restore-and-verify:
-    if: `!${{ contains(github.event.head_commit.message, '[pelagic-bootstrap-complete]') }}`
+    if: ${{ github.event_name != 'push' || !contains(github.event.head_commit.message, '[pelagic-bootstrap-complete]') }}
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
@@ -42,20 +42,18 @@ jobs:
             --output public/assets/fish/grey-snapper.glb
           test -s public/assets/fish/barramundi-hero.glb
           test -s public/assets/fish/grey-snapper.glb
-          # Match the repository ledger to the unmodified upstream model restored here.
+          # Align the licensing ledger with the unmodified upstream model restored here.
           python3 - <<'PY'
           from pathlib import Path
           p = Path("ASSET_CREDITS.md")
           s = p.read_text()
-          old = """- Repacked textures losslessly/visually-losslessly from `11.91 MB` raw to `4.02 MB` (`baseColor` RGBA `PNG32` `1536×1536` preserving translucent fin-ray alpha; `occlusionRoughnessMetallic` and `normal` `PNG24` `1024×1024`).
-          - Bound at runtime"""
-          new = """- The deploy bootstrap restores the original upstream GLB from the official Khronos repository. The optimized 4.02 MB local variant supplied in the user ZIP is not distributed through the GitHub bootstrap because binary attachments are not transferred through text chunks; therefore the checked-in asset is the upstream original (larger download).
-          - Bound at runtime"""
-          if old in s:
-              s = s.replace(old, new)
+          s = s.replace(
+              "Repacked textures losslessly/visually-losslessly from `11.91 MB` raw to `4.02 MB`",
+              "The deployment bootstrap restores the original upstream GLB from the official Khronos repository; this version is larger than the optimized Barramundi GLB in the original source ZIP"
+          )
           p.write_text(s)
           PY
-          # Do not commit the temporary transport chunks into the application source tree.
+          # Remove the transport chunks from the final application repository.
           rm -rf .bootstrap
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -74,7 +72,7 @@ jobs:
         run: npm run typecheck
       - name: Production build
         run: npm run build
-      - name: Verify deployed asset files were included in dist
+      - name: Verify fish models are included in dist
         run: |
           test -s dist/assets/fish/barramundi-hero.glb
           test -s dist/assets/fish/grey-snapper.glb
