@@ -1,1 +1,1 @@
-Trigger the PELAGIC V4 source restore and validation workflow. Retry after removing npm cache setup from the bootstrap workflow.
+Trigger PELAGIC archive restoration again after repairing the missing releasepart03 tail.
