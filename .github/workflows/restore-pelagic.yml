@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - ".bootstrap/releasepart11"
+      - ".bootstrap/trigger"
   workflow_dispatch:
 
 permissions:
