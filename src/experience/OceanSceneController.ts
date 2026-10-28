@@ -285,80 +285,20 @@ export class OceanSceneController {
   }
 
   private async loadAssets(): Promise<void> {
+    // V5: mount the local, original rounded reef-fish geometry immediately instead of loading
+    // the long barramundi GLB. The optional school fish is non-blocking and can fail independently.
     const params = new URLSearchParams(window.location.search);
     const simulateAssetFail = params.get('fish') === 'fallback';
-
-    this.onLoaderState({
-      status: 'loading',
-      progressPercent: null,
-      message: 'Đang chuẩn bị mẫu vật cá đại dương 3D...',
-    });
-
-    const loader = new GLTFLoader();
-
-    // Load secondary schooling snapper non-blocking in parallel
+    this.onLoaderState({ status: 'loading', progressPercent: null, message: 'Đang tạo cá rạn san hô vàng 3D...' });
     if (!simulateAssetFail) {
-      loader.load(
-        '/assets/fish/grey-snapper.glb',
-        (gltf) => {
-          if (!this.isDisposed) {
-            this.worldRig.attachSchoolModel(gltf.scene);
-          }
-        },
-        undefined,
-        () => {
-          // Optional secondary asset; core experience unaffected if skipped
-        },
-      );
+      const loader = new GLTFLoader();
+      loader.load('/assets/fish/grey-snapper.glb', (gltf) => {
+        if (!this.isDisposed) this.worldRig.attachSchoolModel(gltf.scene);
+      }, undefined, () => { /* Optional schooling model; never blocks the hero. */ });
     }
-
-    if (simulateAssetFail) {
-      this.mountFallbackFish();
-      return;
-    }
-
-    loader.load(
-      '/assets/fish/barramundi-hero.glb',
-      (gltf) => {
-        if (this.isDisposed) return;
-        this.fishRig = buildAnatomicalSkinnedFish(gltf.scene);
-        this.fishCarrier.add(this.fishRig.root);
-
-        if (!this.isSoftwareGl) {
-          this.renderer.compile(this.scene, this.camera);
-        }
-
-        document.body.dataset.fishStatus = 'glb-ready';
-        this.onLoaderState({
-          status: 'ready',
-          progressPercent: 100,
-          message: 'Sẵn sàng lặn sâu.',
-        });
-      },
-      (xhr) => {
-        if (this.isDisposed) return;
-        if (xhr.lengthComputable && xhr.total > 0) {
-          const pct = Math.min(99, Math.round((xhr.loaded / xhr.total) * 100));
-          this.onLoaderState({
-            status: 'loading',
-            progressPercent: pct,
-            message: `Đang tải mô hình 3D (${pct}%)...`,
-          });
-        } else {
-          this.onLoaderState({
-            status: 'loading',
-            progressPercent: null,
-            message: 'Đang giải mã hình học & vật liệu PBR...',
-          });
-        }
-      },
-      (err) => {
-        console.warn('Hero GLB load failed; activating multi-part procedural fallback rig:', err);
-        if (!this.isDisposed) {
-          this.mountFallbackFish();
-        }
-      },
-    );
+    this.mountFallbackFish();
+    document.body.dataset.fishStatus = 'procedural-reef-fish-ready';
+    this.onLoaderState({ status: 'ready', progressPercent: 100, message: 'Cá rạn san hô đã sẵn sàng.' });
   }
 
   private mountFallbackFish(): void {

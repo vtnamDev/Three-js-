@@ -4,16 +4,12 @@ All 3D models, textures, shaders, and fonts used in **PELAGIC — THE DEEP DESCE
 
 ---
 
-## 1. Primary Hero 3D Fish Model (`public/assets/fish/barramundi-hero.glb`)
+## 1. V5 Hero — original procedural rounded reef fish (`src/lib/fishSwim.ts`)
 
-- **Model Title:** Barramundi Fish (`Lates calcarifer`)
-- **Author / Origin:** Microsoft / Khronos Group (`KhronosGroup/glTF-Sample-Assets`)
-- **Source URL:** `https://github.com/KhronosGroup/glTF-Sample-Assets/tree/main/Models/BarramundiFish`
-- **License:** **CC0 1.0 Universal (Public Domain Dedication)**
-- **License Verification:** Verified directly in upstream `Models/BarramundiFish/README.md` (`License Information: Donated by Microsoft for glTF testing, licensed under CC0 1.0`) and repository `REUSE.toml` (`SPDX-License-Identifier = "CC0-1.0"`).
-- **Modifications Made for PELAGIC V4:**
-  - The deployment bootstrap restores the original upstream GLB from the official Khronos repository; this version is larger than the optimized Barramundi GLB in the original source ZIP (`baseColor` RGBA `PNG32` `1536×1536` preserving translucent fin-ray alpha; `occlusionRoughnessMetallic` and `normal` `PNG24` `1024×1024`).
-  - Bound at runtime in `src/lib/fishSwim.ts` to a custom **10-bone `THREE.Skeleton` (`THREE.SkinnedMesh`)** with 8 axial spine bones + 2 pectoral fin bones and custom `onBeforeCompile` dorsal/anal/caudal fin membrane ripple + gill operculum breathing.
+- **Model Title:** Original procedural rounded reef fish, inspired by warm clownfish coloration.
+- **Author / Origin:** Authored in project source using Three.js geometry/materials; no third-party hero mesh is bundled.
+- **License:** Original implementation code; not a scanned or species-certified model.
+- **Runtime:** Local procedural geometry with warm orange body, pale belly, animated tail and pectoral fins. The previous CC0 barramundi GLB remains only as a rollback file and is no longer loaded as the hero.
 
 ---
 
