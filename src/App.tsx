@@ -24,7 +24,11 @@ function getInitialAutostart(): boolean {
 
 export default function App() {
   const [webglSupported] = useState<boolean>(() => detectWebGLSupport());
-  const [forceWebGL] = useState<boolean>(() => new URLSearchParams(window.location.search).get('mode') === 'webgl');
+  const [renderMode] = useState<'webgl' | 'cinematic'>(() => {
+    const mode = new URLSearchParams(window.location.search).get('mode');
+    return mode === 'cinematic' ? 'cinematic' : 'webgl';
+  });
+  const forceWebGL = renderMode === 'webgl';
   const [cinematicFailed, setCinematicFailed] = useState<boolean>(false);
   const [quality, setQuality] = useState<QualityTierOption>('auto');
   const [reducedMotion, setReducedMotion] = useState<boolean>(() => getInitialReducedMotion());
@@ -120,7 +124,7 @@ export default function App() {
 
   return (
     <div className="relative w-full select-none">
-      {/* Photographic underwater footage composited into a scroll-linked full-screen canvas. */}
+      {/* Default to the persistent Three.js scene; video compositing is opt-in for debugging only. */}
       {useWebGL ? (
         <OceanCanvas
           quality={quality}
