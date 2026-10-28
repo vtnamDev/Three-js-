@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { OceanCanvas } from './experience/OceanCanvas';
+import { CinematicReel } from './experience/CinematicReel';
 import { LoaderStateUpdate, TelemetryUpdate } from './experience/OceanSceneController';
 import { OCEAN_CHAPTERS } from './lib/chapterConfig';
 import { QualityTierOption, detectWebGLSupport } from './lib/qualityTier';
@@ -23,6 +24,8 @@ function getInitialAutostart(): boolean {
 
 export default function App() {
   const [webglSupported] = useState<boolean>(() => detectWebGLSupport());
+  const [forceWebGL] = useState<boolean>(() => new URLSearchParams(window.location.search).get('mode') === 'webgl');
+  const [cinematicFailed, setCinematicFailed] = useState<boolean>(false);
   const [quality, setQuality] = useState<QualityTierOption>('auto');
   const [reducedMotion, setReducedMotion] = useState<boolean>(() => getInitialReducedMotion());
   const [dockExpanded, setDockExpanded] = useState<boolean>(false);
@@ -109,19 +112,34 @@ export default function App() {
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [webglSupported, notesOpen, scrollToProgress]);
 
-  if (!webglSupported) {
+  const useWebGL = forceWebGL || cinematicFailed;
+
+  if (useWebGL && !webglSupported) {
     return <WebGLFallback />;
   }
 
   return (
     <div className="relative w-full select-none">
-      {/* Persistent Single-Owner 3D WebGL Ocean Stage */}
-      <OceanCanvas
-        quality={quality}
-        reducedMotion={reducedMotion}
-        onTelemetry={setTelemetry}
-        onLoaderState={setLoaderState}
-      />
+      {/* Photographic underwater footage composited into a scroll-linked full-screen canvas. */}
+      {useWebGL ? (
+        <OceanCanvas
+          quality={quality}
+          reducedMotion={reducedMotion}
+          onTelemetry={setTelemetry}
+          onLoaderState={setLoaderState}
+        />
+      ) : (
+        <CinematicReel
+          reducedMotion={reducedMotion}
+          quality={quality}
+          onTelemetry={setTelemetry}
+          onReady={() => setLoaderState({ status: 'ready', progressPercent: 100, message: 'Cảnh quay đại dương đã sẵn sàng.' })}
+          onFallback={() => {
+            setCinematicFailed(true);
+            setLoaderState({ status: 'loading', progressPercent: null, message: 'Không thể tải cảnh quay; đang chuyển sang chế độ 3D.' });
+          }}
+        />
+      )}
 
       {/* Honest Asset Loading Overlay */}
       <LoadingOverlay loaderState={loaderState} />

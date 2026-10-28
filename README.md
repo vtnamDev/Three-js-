@@ -1,17 +1,17 @@
 # PELAGIC — THE DEEP DESCENT
 
-Trải nghiệm đại dương 3D điện ảnh điều khiển bằng thao tác cuộn trang (`scroll` / `touch` / bàn phím), đưa người xem lặn theo một cá thể cá đại dương bơi liên tục qua **8 tầng độ sâu** từ mặt nước ngập nắng (`0 m`) xuống đáy vực thẳm **Hadal (`10.920 m`)**.
+Trải nghiệm điện ảnh dưới nước điều khiển bằng thao tác cuộn trang (`scroll` / `touch` / bàn phím), chuyển cảnh qua **8 tầng độ sâu** từ mặt nước ngập nắng (`0 m`) xuống vực thẳm Hadal. Chế độ mặc định ghép cảnh quay dưới nước thật vào một canvas toàn màn hình; chế độ Three.js cũ vẫn có thể mở bằng `?mode=webgl`.
 
 ---
 
 ## Kiến trúc kỹ thuật chính
 
 - **Stack:** Vite + React 19 + TypeScript + Three.js (`THREE.WebGLRenderer` đơn nhất, một vòng lặp render duy nhất).
-- **Mô hình cá hề 3D & chuyển động (`src/lib/fishSwim.ts`):**
-  - Hero sử dụng `public/assets/fish/clownfish-animated.glb` từ Quaternius Animated Cute Fish Pack (**CC0-1.0**, khoảng 169 KB), có skinning thật và sáu clip animation tích hợp.
-  - Animation mixer phát `Swimming_Normal`, pha sang `Swimming_Fast` khi cuộn nhanh; cá tiếp tục bơi khi người dùng dừng cuộn mà không làm trôi vị trí độ sâu.
-  - Vật liệu được hiệu chỉnh theo màu cam ấm, kem và nâu sẫm; model được fit/căn giữa bằng bounding box trước khi đưa vào quỹ đạo.
-  - Mô hình procedural `buildProceduralFallbackFish()` chỉ dùng khi GLB không tải được hoặc URL QA `?fish=fallback` được chỉ định.
+- **Cinematic Reel (`src/experience/CinematicReel.tsx`):**
+  - Chế độ mặc định dùng cảnh quay dưới nước thật từ Pexels, chuyển sang 8 đoạn tương ứng với 8 tầng biển. Progress cuộn điều khiển timestamp của video; khi dừng cuộn, cảnh quay tiếp tục chuyển động nhẹ.
+  - Canvas thêm color grade riêng từng tầng, cross-dissolve, caustics mặt nước, marine snow, vignette và zoom/crop theo composition.
+  - Giữ HUD, thanh chọn tầng, Sổ tay Hải dương và reduced-motion. Nếu toàn bộ clip lỗi tải, tự fallback sang scene Three.js. `?mode=webgl` ép bật scene Three.js cũ.
+  - Cảnh quay có độ chân thực quang học của video nguồn; đây là compositing canvas, không phải mô phỏng vật lý toàn bộ đại dương bằng 3D.
 - **Một nguồn tiến độ cuộn chuẩn tắc (`src/lib/scrollDirector.ts`, `src/lib/fishPath.ts`, `src/lib/chapterConfig.ts`):**
   - `scrollProgress ∈ [0, 1]` điều khiển đồng bộ đường bơi 3D `CatmullRomCurve3`, góc nghiêng thân cá khi cua (`bankRadians`), khung hình camera thích ứng tỷ lệ màn hình dọc/ngang, màu nước, mật độ sương mù `FogExp2`, hệ đèn 3 điểm, đàn cá phụ (`grey-snapper.glb`), rừng tảo bẹ, sứa phát quang, đồng bằng trầm tích, hẻm vực kiến tạo và khe nứt lạnh Hadal.
   - Cuộn ngược lên khôi phục chính xác độ sâu, ánh sáng và tầng biển trước đó.

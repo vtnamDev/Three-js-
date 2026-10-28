@@ -43,3 +43,17 @@ All 3D models, textures, shaders, and fonts used in **PELAGIC — THE DEEP DESCE
 ## 4. Typography
 
 - **Cormorant Garamond**, **Plus Jakarta Sans**, and **JetBrains Mono** served via Google Fonts (**SIL Open Font License 1.1**).
+
+---
+
+## V5.2 Cinematic footage (Pexels)
+
+The default cinematic mode composites real underwater footage into a scroll-linked canvas. Video footage remains hosted by Pexels and is streamed at runtime; no unaltered video files are redistributed inside this repository. Pexels' official license permits free use and modification in websites/apps; attribution is not required but creator/source links are kept here for provenance. Verify the latest terms at https://www.pexels.com/license/ before commercial republishing.
+
+- **Clownfish surface scene:** Across Wong, “Underwater video of clownfish” — https://www.pexels.com/video/underwater-video-of-clownfish-7008971/
+- **Coral reef and tropical fish:** Alex Mesel, “Underwater footage of tropical fish in a coral reef” — https://www.pexels.com/video/underwater-footage-of-tropical-fish-in-a-coral-reef-11273418/
+- **Deep-water dive:** JUN HO LEE, “Deep Blue Dive: Underwater Exploration Adventure” — https://www.pexels.com/video/deep-blue-dive-underwater-exploration-adventure-35588135/
+- **Jellyfish scene:** Pexels, “Jellyfish swimming in the ocean” — https://www.pexels.com/video/jellyfish-swimming-in-the-ocean-8950645/
+- **Dark bioluminescent scene:** Nothing Ahead, “Jellyfish in the dark with green and blue lights” — https://www.pexels.com/video/jellyfish-in-the-dark-with-green-and-blue-lights-17177445/
+
+**Rendering distinction:** the cinematic mode uses genuine footage plus Canvas grading, caustics, particles, dark-water atmosphere and scroll-controlled cross-dissolves. It is not represented as a physically simulated, fully 3D ocean or a single continuously modelled fish.

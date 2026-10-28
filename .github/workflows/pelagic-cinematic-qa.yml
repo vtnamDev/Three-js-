@@ -1,0 +1,47 @@
+name: PELAGIC Cinematic Canvas QA
+on:
+  push:
+    branches:
+      - feat/pelagic-cinematic-film-sequence
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  cinematic-mobile-qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Install app dependencies
+        run: npm install --include=optional --no-audit --no-fund
+      - name: Run unit tests and TypeScript check
+        run: |
+          npm test
+          npm run typecheck
+      - name: Build production bundle
+        run: npm run build
+      - name: Install Playwright and Chromium
+        run: |
+          npm install --no-save --package-lock=false playwright
+          npx playwright install chromium
+      - name: Start local production preview
+        run: |
+          npm run preview -- --host 127.0.0.1 --port 4173 > /tmp/vite-preview.log 2>&1 &
+          for i in $(seq 1 30); do curl -fsS http://127.0.0.1:4173/ >/dev/null && break; sleep 1; done
+          curl -fsS http://127.0.0.1:4173/ >/dev/null
+      - name: Test actual mobile render, video decoding and chapter transitions
+        env:
+          PELAGIC_URL: http://127.0.0.1:4173/?autostart=1
+        run: node tools/pelagic-cinematic-qa.cjs | tee /tmp/cinematic-qa.log
+      - name: Upload mobile screenshots and preview log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pelagic-cinematic-canvas-qa
+          path: |
+            /tmp/pelagic-film-*.jpg
+            /tmp/vite-preview.log
+          if-no-files-found: warn
