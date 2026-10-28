@@ -32,6 +32,8 @@ const failedRequests = [];
     const canvas = document.querySelector('canvas[data-testid="pelagic-film-canvas"]');
     return {
       label, title: document.title, bodyStatus: document.body.dataset.cinematicStatus || null,
+      source: document.body.dataset.cinematicSource || null,
+      source: document.body.dataset.cinematicSource || null,
       chapter: document.body.dataset.cinematicChapter || null, progress: document.body.dataset.cinematicProgress || null,
       fps: document.body.dataset.cinematicFrameRate || null,
       reel: rect('[data-testid="pelagic-cinematic-reel"]'),
@@ -54,5 +56,8 @@ const failedRequests = [];
   console.log('SCREENSHOT_SURFACE_B64=' + fs.readFileSync('/tmp/pelagic-film-surface.jpg').toString('base64'));
   console.log('SCREENSHOT_MIDDLE_B64=' + fs.readFileSync('/tmp/pelagic-film-middle.jpg').toString('base64'));
   console.log('SCREENSHOT_HADAL_B64=' + fs.readFileSync('/tmp/pelagic-film-hadal.jpg').toString('base64'));
+  const readyClipCount = surface.videos.filter(v => v.readyState >= 2 && !v.error).length;
+  const hasHttpError = errors.some(e => /404|500|Failed to load resource/i.test(e));
+  if (response?.status() !== 200 || surface.bodyStatus !== 'ready' || readyClipCount < 3 || !surface.hudTitle?.visible || !middle.hudDepth?.visible || hasHttpError) process.exitCode = 2;
   await browser.close();
 })().catch(err => { console.error(err.stack || err); process.exit(1); });

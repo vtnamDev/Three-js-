@@ -43,18 +43,6 @@ const CLIPS: ReelClip[] = [
     page: 'https://www.pexels.com/video/underwater-footage-of-tropical-fish-in-a-coral-reef-11273418/',
   },
   {
-    id: 'blue-dive',
-    src: 'https://videos.pexels.com/video-files/35588135/35588135-hd_2160_3840_60fps.mp4',
-    credit: 'JUN HO LEE / Pexels',
-    page: 'https://www.pexels.com/video/deep-blue-dive-underwater-exploration-adventure-35588135/',
-  },
-  {
-    id: 'jellyfish',
-    src: 'https://videos.pexels.com/video-files/8950645/8950645-hd_1920_1080_60fps.mp4',
-    credit: 'Pexels contributor',
-    page: 'https://www.pexels.com/video/jellyfish-swimming-in-the-ocean-8950645/',
-  },
-  {
     id: 'abyss',
     src: 'https://videos.pexels.com/video-files/17177445/17177445-hd_1920_1080_60fps.mp4',
     credit: 'Nothing Ahead / Pexels',
@@ -63,14 +51,17 @@ const CLIPS: ReelClip[] = [
 ];
 
 const SHOTS: ReelShot[] = [
-  { chapterIndex: 0, clipId: 'clownfish', from: 0.02, to: 0.94, focusX: 0.50, focusY: 0.52, zoom: 1.00, grade: 'surface', darkness: 0.015 },
-  { chapterIndex: 1, clipId: 'reef', from: 0.02, to: 0.94, focusX: 0.51, focusY: 0.52, zoom: 1.04, grade: 'reef', darkness: 0.045 },
-  { chapterIndex: 2, clipId: 'blue-dive', from: 0.02, to: 0.96, focusX: 0.50, focusY: 0.48, zoom: 1.02, grade: 'blue', darkness: 0.11 },
-  { chapterIndex: 3, clipId: 'jellyfish', from: 0.02, to: 0.96, focusX: 0.52, focusY: 0.52, zoom: 1.04, grade: 'twilight', darkness: 0.17 },
-  { chapterIndex: 4, clipId: 'abyss', from: 0.02, to: 0.96, focusX: 0.50, focusY: 0.48, zoom: 1.06, grade: 'midnight', darkness: 0.28 },
-  { chapterIndex: 5, clipId: 'blue-dive', from: 0.18, to: 0.98, focusX: 0.50, focusY: 0.48, zoom: 1.07, grade: 'abyss', darkness: 0.31 },
-  { chapterIndex: 6, clipId: 'abyss', from: 0.16, to: 0.98, focusX: 0.50, focusY: 0.52, zoom: 1.09, grade: 'canyon', darkness: 0.34 },
-  { chapterIndex: 7, clipId: 'abyss', from: 0.48, to: 0.99, focusX: 0.50, focusY: 0.50, zoom: 1.11, grade: 'hadal', darkness: 0.46 },
+  // Surface: real clownfish in a sea anemone, followed by wide reef footage.
+  { chapterIndex: 0, clipId: 'clownfish', from: 0.04, to: 0.30, focusX: 0.53, focusY: 0.53, zoom: 1.00, grade: 'surface', darkness: 0.015 },
+  { chapterIndex: 1, clipId: 'reef', from: 0.02, to: 0.44, focusX: 0.51, focusY: 0.52, zoom: 1.00, grade: 'reef', darkness: 0.035 },
+  { chapterIndex: 2, clipId: 'reef', from: 0.44, to: 0.99, focusX: 0.50, focusY: 0.49, zoom: 1.02, grade: 'blue', darkness: 0.10 },
+  // The same abyss clip advances continuously through the five deep chapters rather than
+  // jumping back to a close-up fish or resetting its timestamp at each chapter boundary.
+  { chapterIndex: 3, clipId: 'abyss', from: 0.03, to: 0.20, focusX: 0.50, focusY: 0.49, zoom: 1.02, grade: 'twilight', darkness: 0.12 },
+  { chapterIndex: 4, clipId: 'abyss', from: 0.20, to: 0.39, focusX: 0.50, focusY: 0.49, zoom: 1.03, grade: 'midnight', darkness: 0.18 },
+  { chapterIndex: 5, clipId: 'abyss', from: 0.39, to: 0.58, focusX: 0.50, focusY: 0.49, zoom: 1.04, grade: 'abyss', darkness: 0.22 },
+  { chapterIndex: 6, clipId: 'abyss', from: 0.58, to: 0.78, focusX: 0.50, focusY: 0.49, zoom: 1.05, grade: 'canyon', darkness: 0.24 },
+  { chapterIndex: 7, clipId: 'abyss', from: 0.78, to: 0.985, focusX: 0.50, focusY: 0.49, zoom: 1.06, grade: 'hadal', darkness: 0.30 },
 ];
 
 const clamp01 = (n: number) => Math.max(0, Math.min(1, n));
@@ -201,6 +192,14 @@ export function CinematicReel({ reducedMotion, quality, onTelemetry, onReady, on
       video.style.height = '1px';
       video.style.opacity = '0';
       video.style.pointerEvents = 'none';
+      video.addEventListener('loadedmetadata', () => {
+        if (disposed || !Number.isFinite(video.duration) || video.duration <= 0) return;
+        const startChapter = findChapter(progress).chapter;
+        const shot = SHOTS[startChapter.index];
+        if (shot && shot.clipId === clip.id) {
+          try { video.currentTime = clamp01(shot.from) * Math.max(0, video.duration - 0.15); } catch { /* Wait for the next scroll tick if metadata is not seekable yet. */ }
+        }
+      });
       video.addEventListener('loadeddata', () => {
         if (disposed) return;
         available.add(clip.id);
@@ -226,7 +225,9 @@ export function CinematicReel({ reducedMotion, quality, onTelemetry, onReady, on
 
     const activateVideos = (shotIndex: number, nextIndex: number, now: number) => {
       const intendedShot = SHOTS[shotIndex];
-      const activeShot = available.has(intendedShot.clipId) ? intendedShot : (available.size > 0 ? { ...intendedShot, clipId: [...available][0] } : intendedShot);
+      const preferredFallback = shotIndex >= 3 ? 'abyss' : shotIndex >= 1 ? 'reef' : 'clownfish';
+      const fallbackClipId = available.has(preferredFallback) ? preferredFallback : [...available][0];
+      const activeShot = available.has(intendedShot.clipId) ? intendedShot : (available.size > 0 ? { ...intendedShot, clipId: fallbackClipId } : intendedShot);
       const upcoming = SHOTS[nextIndex];
       const wanted = new Set<string>([activeShot.clipId]);
       if (upcoming && upcoming.clipId !== activeShot.clipId) wanted.add(upcoming.clipId);
@@ -453,6 +454,7 @@ export function CinematicReel({ reducedMotion, quality, onTelemetry, onReady, on
       document.body.dataset.cinematicChapter = state.chapter.id;
       document.body.dataset.cinematicProgress = progress.toFixed(4);
       document.body.dataset.cinematicFrameRate = String(currentFps ?? 0);
+      document.body.dataset.cinematicSource = lastDrawnClip;
     };
 
     setCanvasSize();
@@ -484,6 +486,7 @@ export function CinematicReel({ reducedMotion, quality, onTelemetry, onReady, on
       delete document.body.dataset.cinematicChapter;
       delete document.body.dataset.cinematicProgress;
       delete document.body.dataset.cinematicFrameRate;
+      delete document.body.dataset.cinematicSource;
     };
   }, []);
 
