@@ -1,4 +1,5 @@
 const { chromium } = require('playwright');
+const fs = require('node:fs');
 
 const target = process.env.PELAGIC_URL || 'http://127.0.0.1:4173/?autostart=1';
 const errors = [];
@@ -40,15 +41,18 @@ const failedRequests = [];
     };
   }, label);
   const surface = await inspect('surface');
-  await page.screenshot({ path: '/tmp/pelagic-film-surface.jpg', type: 'jpeg', quality: 80 });
+  await page.screenshot({ path: '/tmp/pelagic-film-surface.jpg', type: 'jpeg', quality: 55 });
   await page.evaluate(() => window.scrollTo(0, Math.round((document.documentElement.scrollHeight - innerHeight) * 0.48)));
   await page.waitForTimeout(2200);
   const middle = await inspect('mid-descent');
-  await page.screenshot({ path: '/tmp/pelagic-film-middle.jpg', type: 'jpeg', quality: 80 });
+  await page.screenshot({ path: '/tmp/pelagic-film-middle.jpg', type: 'jpeg', quality: 55 });
   await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
   await page.waitForTimeout(1800);
   const hadal = await inspect('hadal');
-  await page.screenshot({ path: '/tmp/pelagic-film-hadal.jpg', type: 'jpeg', quality: 80 });
+  await page.screenshot({ path: '/tmp/pelagic-film-hadal.jpg', type: 'jpeg', quality: 55 });
   console.log('CINEMATIC_QA=' + JSON.stringify({ httpStatus: response?.status(), surface, middle, hadal, errors: [...new Set(errors)].slice(0, 25), failedRequests: failedRequests.slice(0, 30) }));
+  console.log('SCREENSHOT_SURFACE_B64=' + fs.readFileSync('/tmp/pelagic-film-surface.jpg').toString('base64'));
+  console.log('SCREENSHOT_MIDDLE_B64=' + fs.readFileSync('/tmp/pelagic-film-middle.jpg').toString('base64'));
+  console.log('SCREENSHOT_HADAL_B64=' + fs.readFileSync('/tmp/pelagic-film-hadal.jpg').toString('base64'));
   await browser.close();
 })().catch(err => { console.error(err.stack || err); process.exit(1); });

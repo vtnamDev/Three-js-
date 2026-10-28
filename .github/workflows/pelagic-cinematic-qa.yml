@@ -27,6 +27,8 @@ jobs:
         run: |
           npm install --no-save --package-lock=false playwright
           npx playwright install chromium
+      - name: Discover real media URLs exposed by Pexels pages
+        run: node tools/discover-pexels-media.cjs | tee /tmp/pexels-discovery.log
       - name: Start local production preview
         run: |
           npm run preview -- --host 127.0.0.1 --port 4173 > /tmp/vite-preview.log 2>&1 &
