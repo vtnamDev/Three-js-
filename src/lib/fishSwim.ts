@@ -328,6 +328,152 @@ export function buildAnatomicalSkinnedFish(loadedScene: THREE.Object3D): RiggedF
  * body, beveled operculum plates, eyes with iris/cornea, spiny & soft dorsal fins, articulated pectoral,
  * pelvic, anal, and forked caudal fin) used ONLY if the GLB network fetch is blocked or simulated to fail.
  */
+/**
+ * Uses Quaternius' CC0 rigged clownfish as the hero asset. The source GLB contains
+ * six swimming/action clips and an articulated 6-joint spine; this adapter normalizes
+ * its FBX-origin scale, preserves the real skinning, and exposes the existing hero-rig API.
+ */
+export function buildAnimatedClownfishRig(
+  loadedScene: THREE.Object3D,
+  animations: THREE.AnimationClip[],
+): RiggedFishRig {
+  const root = new THREE.Group();
+  root.name = 'PelagicAnimatedClownfishRoot';
+  const geometries = new Set<THREE.BufferGeometry>();
+  const clonedMaterials = new Set<THREE.Material>();
+  const sourceMaterials = new Set<THREE.Material>();
+
+  loadedScene.updateMatrixWorld(true);
+  const bounds = new THREE.Box3().setFromObject(loadedScene);
+  const size = bounds.getSize(new THREE.Vector3());
+  const center = bounds.getCenter(new THREE.Vector3());
+  const largestDimension = Math.max(size.x, size.y, size.z, 0.001);
+  const fitScale = 1.82 / largestDimension;
+  loadedScene.scale.multiplyScalar(fitScale);
+  loadedScene.position.addScaledVector(center, -fitScale);
+  root.add(loadedScene);
+
+  const bones: THREE.Bone[] = [];
+  let skinnedMesh: THREE.SkinnedMesh | undefined;
+  loadedScene.traverse((object) => {
+    if ((object as THREE.Bone).isBone) bones.push(object as THREE.Bone);
+    const mesh = object as THREE.Mesh;
+    if (!mesh.isMesh) return;
+    geometries.add(mesh.geometry);
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
+    if ((mesh as THREE.SkinnedMesh).isSkinnedMesh && !skinnedMesh) {
+      skinnedMesh = mesh as THREE.SkinnedMesh;
+    }
+
+    const sourceList = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+    const tuned = sourceList.map((source) => {
+      sourceMaterials.add(source);
+      const material = source.clone();
+      clonedMaterials.add(material);
+      if (material instanceof THREE.MeshStandardMaterial) {
+        const name = material.name.toLowerCase();
+        material.side = THREE.DoubleSide;
+        material.metalness = 0.025;
+        material.roughness = name.includes('eye') ? 0.12 : 0.31;
+        material.envMapIntensity = 1.15;
+        if (name.includes('main')) {
+          material.color.setHex(0xf47720);
+        } else if (name.includes('light')) {
+          material.color.setHex(0xfff1d9);
+        } else if (name.includes('dark')) {
+          material.color.setHex(0x64371d);
+        } else if (name.includes('eye')) {
+          material.color.setHex(0x101419);
+        }
+        material.needsUpdate = true;
+      }
+      return material;
+    });
+    mesh.material = Array.isArray(mesh.material) ? tuned : tuned[0];
+  });
+
+  // The original GLB is authored with a 6-joint chain. Pad the old telemetry interface so
+  // existing performance instrumentation can still read spineBones[7] without crashing.
+  while (bones.length < SPINE_BONE_COUNT) {
+    bones.push(bones[bones.length - 1] ?? new THREE.Bone());
+  }
+  if (!bones[0].parent) root.add(bones[0]);
+
+  const mixer = new THREE.AnimationMixer(loadedScene);
+  const normalClip =
+    animations.find((clip) => /Swimming_Normal/i.test(clip.name)) ??
+    animations.find((clip) => /Swimming/i.test(clip.name)) ??
+    animations[0];
+  const fastClip = animations.find((clip) => /Swimming_Fast/i.test(clip.name)) ?? null;
+  const normalAction = normalClip ? mixer.clipAction(normalClip) : null;
+  const fastAction = fastClip && fastClip !== normalClip ? mixer.clipAction(fastClip) : null;
+
+  if (normalAction) {
+    normalAction.reset();
+    normalAction.enabled = true;
+    normalAction.setLoop(THREE.LoopRepeat, Infinity);
+    normalAction.setEffectiveWeight(1);
+    normalAction.play();
+  }
+  if (fastAction) {
+    fastAction.reset();
+    fastAction.enabled = true;
+    fastAction.setLoop(THREE.LoopRepeat, Infinity);
+    fastAction.setEffectiveWeight(0);
+    fastAction.play();
+  }
+
+  const pectoralLeftBone = bones[Math.min(3, bones.length - 1)];
+  const pectoralRightBone = bones[Math.min(4, bones.length - 1)];
+  const shaderUniforms = {
+    uTime: { value: 0 },
+    uSwimAmp: { value: 1 },
+    uBioRim: { value: 0.23 },
+  };
+  let previousElapsed = 0;
+
+  const update = (elapsedTime: number, scrollVelocity: number, reducedMotion: boolean) => {
+    const delta = THREE.MathUtils.clamp(elapsedTime - previousElapsed, 0, 0.05);
+    previousElapsed = elapsedTime;
+    const scrollSpeed = Math.abs(scrollVelocity);
+    const fastWeight = fastAction
+      ? THREE.MathUtils.clamp((scrollSpeed - 0.03) * 0.82, 0, 0.62)
+      : 0;
+    normalAction?.setEffectiveWeight(1 - fastWeight);
+    fastAction?.setEffectiveWeight(fastWeight);
+    normalAction?.setEffectiveTimeScale(reducedMotion ? 0.54 : 0.86 + fastWeight * 0.48);
+    fastAction?.setEffectiveTimeScale(reducedMotion ? 0.64 : 0.98 + fastWeight * 0.42);
+    mixer.update(delta);
+
+    const breath = Math.sin(elapsedTime * (reducedMotion ? 1.0 : 1.7));
+    root.rotation.y = breath * (reducedMotion ? 0.006 : 0.018);
+    root.rotation.z = Math.sin(elapsedTime * 0.75) * (reducedMotion ? 0.004 : 0.012);
+    root.position.y = Math.sin(elapsedTime * 1.15) * (reducedMotion ? 0.0015 : 0.006);
+    shaderUniforms.uTime.value = elapsedTime;
+    shaderUniforms.uSwimAmp.value = reducedMotion ? 0.5 : 1 + Math.min(scrollSpeed, 0.7) * 0.22;
+  };
+
+  const dispose = () => {
+    mixer.stopAllAction();
+    mixer.uncacheRoot(loadedScene);
+    geometries.forEach((geometry) => geometry.dispose());
+    clonedMaterials.forEach((material) => material.dispose());
+    sourceMaterials.forEach((material) => material.dispose());
+  };
+
+  return {
+    root,
+    skinnedMesh,
+    spineBones: bones,
+    pectoralLeftBone,
+    pectoralRightBone,
+    shaderUniforms,
+    update,
+    dispose,
+  };
+}
+
 export function buildProceduralFallbackFish(): RiggedFishRig {
   // PELAGIC V5.1: build one smooth, watertight-looking body with vertex-colour markings.
   // This replaces the visibly segmented LatheGeometry body that produced pale, disconnected bands.

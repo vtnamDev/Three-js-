@@ -1,3 +1,4 @@
+> **V5.1 update — 2026-10-28:** The V4 decision below is historical and superseded. Following mobile screenshot review, the large Barramundi hero was removed from the active build. The current hero is public/assets/fish/clownfish-animated.glb, the rigged Quaternius Animated Cute Fish Pack model (CC0-1.0, approximately 169 KB, six embedded animation clips). See ASSET_CREDITS.md for current attribution and license evidence. Do not treat the previous “SELECTED — Primary Hero Fish” row as the current runtime choice.
 # ASSET RESEARCH & LICENSE GATE — PELAGIC V4
 
 Checked on: `2026-10-26`

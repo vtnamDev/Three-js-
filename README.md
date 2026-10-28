@@ -7,11 +7,11 @@ Trải nghiệm đại dương 3D điện ảnh điều khiển bằng thao tác
 ## Kiến trúc kỹ thuật chính
 
 - **Stack:** Vite + React 19 + TypeScript + Three.js (`THREE.WebGLRenderer` đơn nhất, một vòng lặp render duy nhất).
-- **Mô hình cá 3D & chuyển động sinh học (`src/lib/fishSwim.ts`):**
-  - Sử dụng `public/assets/fish/barramundi-hero.glb` (**CC0-1.0**, PBR đầy đủ: `baseColor` có kênh alpha vây trong mờ, `metallicRoughness` + `AO`, `normalMap`).
-  - Khâu tự động vào hệ xương **10-bone `THREE.Skeleton` (`THREE.SkinnedMesh`)** gồm 8 đốt sống dọc thân (`Head` → `CaudalBlade`) và 2 xương vây ngực (`PectoralL/R`), kết hợp biến dạng màng vây lưng/vây hậu môn và nhịp thở nắp mang bằng `onBeforeCompile`.
-  - Khi người dùng dừng cuộn hoàn toàn, cá vẫn bơi tự nhiên liên tục mà không làm trôi vị trí độ sâu.
-  - Có sẵn mô hình cá dự phòng đa khớp nối 11 bộ phận (`?fish=fallback`) nếu không tải được GLB.
+- **Mô hình cá hề 3D & chuyển động (`src/lib/fishSwim.ts`):**
+  - Hero sử dụng `public/assets/fish/clownfish-animated.glb` từ Quaternius Animated Cute Fish Pack (**CC0-1.0**, khoảng 169 KB), có skinning thật và sáu clip animation tích hợp.
+  - Animation mixer phát `Swimming_Normal`, pha sang `Swimming_Fast` khi cuộn nhanh; cá tiếp tục bơi khi người dùng dừng cuộn mà không làm trôi vị trí độ sâu.
+  - Vật liệu được hiệu chỉnh theo màu cam ấm, kem và nâu sẫm; model được fit/căn giữa bằng bounding box trước khi đưa vào quỹ đạo.
+  - Mô hình procedural `buildProceduralFallbackFish()` chỉ dùng khi GLB không tải được hoặc URL QA `?fish=fallback` được chỉ định.
 - **Một nguồn tiến độ cuộn chuẩn tắc (`src/lib/scrollDirector.ts`, `src/lib/fishPath.ts`, `src/lib/chapterConfig.ts`):**
   - `scrollProgress ∈ [0, 1]` điều khiển đồng bộ đường bơi 3D `CatmullRomCurve3`, góc nghiêng thân cá khi cua (`bankRadians`), khung hình camera thích ứng tỷ lệ màn hình dọc/ngang, màu nước, mật độ sương mù `FogExp2`, hệ đèn 3 điểm, đàn cá phụ (`grey-snapper.glb`), rừng tảo bẹ, sứa phát quang, đồng bằng trầm tích, hẻm vực kiến tạo và khe nứt lạnh Hadal.
   - Cuộn ngược lên khôi phục chính xác độ sâu, ánh sáng và tầng biển trước đó.
@@ -57,7 +57,7 @@ Dự án tương thích trực tiếp với cấu hình Vite mặc định của
 - **Build Command:** `npm run build`
 - **Output Directory:** `dist`
 
-Toàn bộ mô hình 3D (`public/assets/fish/*.glb`) được phục vụ từ đường dẫn tương đối gốc `/assets/fish/...` và được đóng gói trực tiếp vào `dist/assets/fish/`.
+Các mô hình 3D hiện dùng (`public/assets/fish/*.glb`, gồm cá hề hoạt ảnh ~169 KB và cá phụ Grey Snapper) được phục vụ từ đường dẫn tương đối gốc `/assets/fish/...` và được đóng gói trực tiếp vào `dist/assets/fish/`.
 
 ---
 

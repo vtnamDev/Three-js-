@@ -10,7 +10,7 @@ import {
 import { getCameraRigAtProgress, getFishPathAtProgress } from '../lib/fishPath';
 import {
   RiggedFishRig,
-  buildAnatomicalSkinnedFish,
+  buildAnimatedClownfishRig,
   buildProceduralFallbackFish,
 } from '../lib/fishSwim';
 import {
@@ -339,20 +339,80 @@ export class OceanSceneController {
   }
 
   private async loadAssets(): Promise<void> {
-    // V5: mount the local, original rounded reef-fish geometry immediately instead of loading
-    // the long barramundi GLB. The optional school fish is non-blocking and can fail independently.
     const params = new URLSearchParams(window.location.search);
     const simulateAssetFail = params.get('fish') === 'fallback';
-    this.onLoaderState({ status: 'loading', progressPercent: null, message: 'Đang tạo cá rạn san hô vàng 3D...' });
-    if (!simulateAssetFail) {
-      const loader = new GLTFLoader();
-      loader.load('/assets/fish/grey-snapper.glb', (gltf) => {
-        if (!this.isDisposed) this.worldRig.attachSchoolModel(gltf.scene);
-      }, undefined, () => { /* Optional schooling model; never blocks the hero. */ });
+    this.onLoaderState({
+      status: 'loading',
+      progressPercent: null,
+      message: 'Đang tải cá hề 3D đã rig và hoạt ảnh...',
+    });
+
+    if (simulateAssetFail) {
+      this.mountFallbackFish();
+      return;
     }
-    this.mountFallbackFish();
-    document.body.dataset.fishStatus = 'procedural-reef-fish-ready';
-    this.onLoaderState({ status: 'ready', progressPercent: 100, message: 'Cá rạn san hô đã sẵn sàng.' });
+
+    const loader = new GLTFLoader();
+
+    // Secondary schooling model stays optional and never blocks the hero.
+    loader.load(
+      '/assets/fish/grey-snapper.glb',
+      (gltf) => {
+        if (!this.isDisposed) this.worldRig.attachSchoolModel(gltf.scene);
+      },
+      undefined,
+      () => { /* Optional schooling asset; a failure must not block the hero. */ },
+    );
+
+    // Quaternius Animated Cute Fish Pack (CC0): actual skinned mesh with six authored action clips.
+    loader.load(
+      '/assets/fish/clownfish-animated.glb',
+      (gltf) => {
+        if (this.isDisposed) {
+          gltf.scene.traverse((object) => {
+            const mesh = object as THREE.Mesh;
+            if (mesh.isMesh) {
+              mesh.geometry.dispose();
+              const sourceMaterials = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+              sourceMaterials.forEach((material) => material.dispose());
+            }
+          });
+          return;
+        }
+        this.fishRig = buildAnimatedClownfishRig(gltf.scene, gltf.animations);
+        this.fishCarrier.add(this.fishRig.root);
+        if (!this.isSoftwareGl) {
+          this.renderer.compile(this.scene, this.camera);
+        }
+        document.body.dataset.fishStatus = 'animated-clownfish-ready';
+        this.onLoaderState({
+          status: 'ready',
+          progressPercent: 100,
+          message: 'Cá hề 3D và hoạt ảnh bơi đã sẵn sàng.',
+        });
+      },
+      (xhr) => {
+        if (this.isDisposed) return;
+        if (xhr.lengthComputable && xhr.total > 0) {
+          const pct = Math.min(99, Math.round((xhr.loaded / xhr.total) * 100));
+          this.onLoaderState({
+            status: 'loading',
+            progressPercent: pct,
+            message: 'Đang tải cá hề 3D và hoạt ảnh (' + pct + '%)...',
+          });
+        } else {
+          this.onLoaderState({
+            status: 'loading',
+            progressPercent: null,
+            message: 'Đang giải mã model cá hề và rig hoạt ảnh...',
+          });
+        }
+      },
+      (error) => {
+        console.warn('Animated clownfish asset failed; activating local fallback rig:', error);
+        if (!this.isDisposed) this.mountFallbackFish();
+      },
+    );
   }
 
   private mountFallbackFish(): void {
