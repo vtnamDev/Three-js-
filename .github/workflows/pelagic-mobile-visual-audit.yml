@@ -1,0 +1,36 @@
+name: PELAGIC Mobile Visual Browser Audit
+on:
+  push:
+    branches:
+      - fix/pelagic-visual-browser-audit
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  mobile-browser-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Install app dependencies
+        run: npm install --include=optional --no-audit --no-fund
+      - name: Install Playwright and Chromium
+        run: |
+          npm install --no-save --package-lock=false playwright
+          npx playwright install chromium
+      - name: Render actual production website at mobile dimensions
+        env:
+          PELAGIC_URL: https://pelagic-deep-descent.vercel.app/?autostart=1
+        run: |
+          set -o pipefail
+          node tools/pelagic-mobile-visual-qa.cjs | tee /tmp/visual-qa.log
+      - name: Upload captured mobile screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pelagic-mobile-visual-qa
+          path: /tmp/pelagic-*.jpg
+          if-no-files-found: warn
