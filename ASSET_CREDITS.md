@@ -43,3 +43,15 @@ All 3D models, textures, shaders, and fonts used in **PELAGIC — THE DEEP DESCE
 ## 4. Typography
 
 - **Cormorant Garamond**, **Plus Jakarta Sans**, and **JetBrains Mono** served via Google Fonts (**SIL Open Font License 1.1**).
+
+---
+
+## V5.2 Cinematic footage (Pexels)
+
+The default cinematic mode composites three real underwater clips into a scroll-linked canvas. Video files remain hosted by Pexels and are streamed at runtime; this repository does not redistribute unaltered copies. Pexels' official license permits free use and modification in websites/apps; attribution is not required but creator/source links are kept here for provenance. Check the current terms at https://www.pexels.com/license/ before commercial republishing.
+
+- **Clownfish surface scene:** Across Wong, “Underwater video of clownfish” — https://www.pexels.com/video/underwater-video-of-clownfish-7008971/ (runtime MP4 verified by Chromium).
+- **Coral reef and tropical fish:** Alex Mesel, “Underwater footage of tropical fish in a coral reef” — https://www.pexels.com/video/underwater-footage-of-tropical-fish-in-a-coral-reef-11273418/ (runtime MP4 verified by Chromium).
+- **Dark bioluminescent scene:** Nothing Ahead, “Jellyfish in the dark with green and blue lights” — https://www.pexels.com/video/jellyfish-in-the-dark-with-green-and-blue-lights-17177445/ (runtime MP4 verified by Chromium).
+
+**Rendering distinction:** The cinematic mode uses genuine footage plus Canvas grading, caustics, particles, dark-water atmosphere and scroll-controlled chapter timing. It is not represented as a physically simulated, fully 3D ocean or one continuously modelled fish.
