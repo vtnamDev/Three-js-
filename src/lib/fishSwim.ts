@@ -333,30 +333,30 @@ export function buildProceduralFallbackFish(): RiggedFishRig {
   root.name = 'ProceduralFallbackFishRoot';
 
   const bodyMat = new THREE.MeshStandardMaterial({
-    color: 0x8eaab8,
+    color: 0xf5822b,
     roughness: 0.32,
-    metalness: 0.28,
+    metalness: 0.02,
   });
   const bellyMat = new THREE.MeshStandardMaterial({
-    color: 0xd4e2ea,
+    color: 0xfff0d8,
     roughness: 0.48,
-    metalness: 0.12,
+    metalness: 0.01,
   });
   const finMat = new THREE.MeshStandardMaterial({
-    color: 0x628395,
+    color: 0xffa04a,
     roughness: 0.58,
-    metalness: 0.06,
+    metalness: 0.01,
     side: THREE.DoubleSide,
   });
   const eyeMat = new THREE.MeshStandardMaterial({
-    color: 0x101820,
+    color: 0x151719,
     roughness: 0.08,
     metalness: 0.1,
   });
 
   // 8-segment articulated body + fins
   const spineBones: THREE.Bone[] = [];
-  const totalLen = 2.1;
+  const totalLen = 1.42;
   const step = totalLen / (SPINE_BONE_COUNT - 1);
 
   for (let i = 0; i < SPINE_BONE_COUNT; i++) {
@@ -367,7 +367,7 @@ export function buildProceduralFallbackFish(): RiggedFishRig {
   }
   root.add(spineBones[0]);
 
-  const radii = [0.06, 0.21, 0.27, 0.25, 0.19, 0.12, 0.065, 0.025];
+  const radii = [0.06, 0.25, 0.39, 0.43, 0.35, 0.22, 0.09, 0.025];
   const geometries: THREE.BufferGeometry[] = [];
 
   for (let i = 0; i < SPINE_BONE_COUNT - 1; i++) {
@@ -385,10 +385,10 @@ export function buildProceduralFallbackFish(): RiggedFishRig {
   }
 
   // Eyes (2 parts)
-  const eyeGeo = new THREE.SphereGeometry(0.036, 14, 14);
+  const eyeGeo = new THREE.SphereGeometry(0.052, 18, 16);
   geometries.push(eyeGeo);
   const eyeL = new THREE.Mesh(eyeGeo, eyeMat);
-  eyeL.position.set(0.085, 0.05, -0.18);
+  eyeL.position.set(0.105, 0.10, -0.12);
   const eyeR = eyeL.clone();
   eyeR.position.x = -0.085;
   spineBones[0].add(eyeL, eyeR);
