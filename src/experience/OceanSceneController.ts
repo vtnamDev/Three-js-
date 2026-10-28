@@ -49,6 +49,8 @@ export class OceanSceneController {
   private renderer: THREE.WebGLRenderer;
   private scene: THREE.Scene;
   private camera: THREE.PerspectiveCamera;
+  private backdrop: THREE.Mesh;
+  private backdropMaterial: THREE.ShaderMaterial;
   private fog: THREE.FogExp2;
   private envTexture: THREE.Texture;
 
@@ -161,6 +163,58 @@ export class OceanSceneController {
     this.camera = new THREE.PerspectiveCamera(42, width / height, 0.12, 160);
     getCameraRigAtProgress(0, width / height, this.camera.position, this._camCurrentLook);
     this.camera.lookAt(this._camCurrentLook);
+
+    // V5.1 cinematic water-volume backdrop: a chapter-colour gradient replaces the flat cyan void.
+    // It is a single low-poly sphere following the camera, with restrained animated caustic shimmer.
+    this.backdropMaterial = new THREE.ShaderMaterial({
+      uniforms: {
+        uTopColor: { value: new THREE.Color(0x70dbf0) },
+        uHorizonColor: { value: new THREE.Color(0x0c6585) },
+        uBottomColor: { value: new THREE.Color(0x06253c) },
+        uTime: { value: 0 },
+        uCaustic: { value: 0.6 },
+      },
+      vertexShader: [
+        'varying vec3 vDirection;',
+        'void main() {',
+        '  vDirection = normalize(position);',
+        '  gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);',
+        '}',
+      ].join('\n'),
+      fragmentShader: [
+        'uniform vec3 uTopColor;',
+        'uniform vec3 uHorizonColor;',
+        'uniform vec3 uBottomColor;',
+        'uniform float uTime;',
+        'uniform float uCaustic;',
+        'varying vec3 vDirection;',
+        'void main() {',
+        '  vec3 dir = normalize(vDirection);',
+        '  float h = dir.y;',
+        '  vec3 col = mix(uBottomColor, uHorizonColor, smoothstep(-0.86, 0.12, h));',
+        '  col = mix(col, uTopColor, smoothstep(0.08, 0.76, h));',
+        '  vec2 waveUv = dir.xz / max(0.22, abs(h) + 0.20);',
+        '  float wa = sin(waveUv.x * 23.0 + sin(waveUv.y * 11.0 + uTime * 0.22) * 2.0 + uTime * 0.13);',
+        '  float wb = sin(waveUv.y * 19.0 - sin(waveUv.x * 13.0 - uTime * 0.18) * 1.7);',
+        '  float caustic = pow(max(0.0, wa * wb), 5.0);',
+        '  float surfaceMask = smoothstep(-0.02, 0.68, h);',
+        '  col += vec3(0.075, 0.25, 0.30) * caustic * uCaustic * surfaceMask;',
+        '  float haze = (1.0 - smoothstep(-0.2, 0.7, h)) * 0.035;',
+        '  col = mix(col, uHorizonColor, haze);',
+        '  gl_FragColor = vec4(col, 1.0);',
+        '}',
+      ].join('\n'),
+      side: THREE.BackSide,
+      depthWrite: false,
+      depthTest: false,
+      toneMapped: false,
+    });
+    this.backdrop = new THREE.Mesh(new THREE.SphereGeometry(70, 32, 24), this.backdropMaterial);
+    this.backdrop.name = 'ChapterGradientWaterBackdrop';
+    this.backdrop.frustumCulled = false;
+    this.backdrop.renderOrder = -1000;
+    this.backdrop.position.copy(this.camera.position);
+    this.scene.add(this.backdrop);
 
     // Studio Underwater 3-Point + Hemisphere Rig
     this.hemiLight = new THREE.HemisphereLight(0x7ce6ff, 0x09354f, 1.35);
@@ -379,6 +433,12 @@ export class OceanSceneController {
     this.fog.density = atmo.fogDensity;
     this.renderer.toneMappingExposure = atmo.exposure;
     this.scene.environmentIntensity = 0.28 + atmo.hemiIntensity * 0.25;
+    const backdropUniforms = this.backdropMaterial.uniforms;
+    backdropUniforms.uTopColor.value.setRGB(...atmo.hemiSkyColor);
+    backdropUniforms.uHorizonColor.value.setRGB(...atmo.bgColor);
+    backdropUniforms.uBottomColor.value.setRGB(...atmo.fogColor);
+    backdropUniforms.uTime.value = elapsed;
+    backdropUniforms.uCaustic.value = Math.min(1.0, atmo.causticStrength * 0.78);
 
     // 3. Deterministic fish 3D path & natural banking orientation
     const fishState = getFishPathAtProgress(
@@ -467,6 +527,7 @@ export class OceanSceneController {
     this.camera.position.lerp(this._camTargetPos, camAlpha);
     this._camCurrentLook.lerp(this._camTargetLook, camAlpha);
     this.camera.lookAt(this._camCurrentLook);
+    this.backdrop.position.copy(this.camera.position);
 
     const rigState = getCameraRigAtProgress(
       this.currentProgress,
@@ -551,6 +612,8 @@ export class OceanSceneController {
     this.worldRig.dispose();
     this.textures.dispose();
     this.envTexture.dispose();
+    this.backdrop.geometry.dispose();
+    this.backdropMaterial.dispose();
 
     this.scene.clear();
     this.renderer.dispose();
