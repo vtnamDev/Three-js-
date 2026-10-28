@@ -116,7 +116,9 @@ export default function App() {
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [webglSupported, notesOpen, scrollToProgress]);
 
-  const useWebGL = forceWebGL || cinematicFailed;
+  // The product is a real-time 3D descent by default. The footage reel is retained only as an explicit demo mode (?mode=film).
+  // If WebGL is unavailable, use the film fallback instead of trapping the visitor on a blank compatibility screen.
+  const useWebGL = forceWebGL || (!forceFilm && webglSupported) || cinematicFailed;
 
   if (useWebGL && !webglSupported) {
     return <WebGLFallback />;
