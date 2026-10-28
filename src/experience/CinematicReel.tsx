@@ -115,6 +115,9 @@ export function CinematicReel({ reducedMotion, quality, onTelemetry, onReady, on
       return;
     }
 
+    const frameCache = document.createElement('canvas');
+    const frameCacheCtx = frameCache.getContext('2d', { alpha: false });
+    let hasCachedFrame = false;
     const videos = new Map<string, HTMLVideoElement>();
     const failed = new Set<string>();
     const available = new Set<string>();
@@ -151,6 +154,9 @@ export function CinematicReel({ reducedMotion, quality, onTelemetry, onReady, on
       if (canvas.width !== width || canvas.height !== height) {
         canvas.width = width;
         canvas.height = height;
+        frameCache.width = width;
+        frameCache.height = height;
+        hasCachedFrame = false;
       }
       canvas.style.width = '100%';
       canvas.style.height = '100%';
