@@ -117,10 +117,9 @@ export default function App() {
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [webglSupported, notesOpen, scrollToProgress]);
 
-  // The product is a real-time 3D descent by default. The footage reel is retained only as an explicit demo mode (?mode=film).
-  // If WebGL is unavailable, use the film fallback instead of trapping the visitor on a blank compatibility screen.
-  // The real-time Three.js scene is the primary experience. Video is only a graceful fallback.
-  const useWebGL = webglSupported && !webglFailed;
+  // Real-time Three.js is the default. Use ?mode=cinematic only to inspect the optional footage reel.
+  // When WebGL is unsupported or fails, fall back to the footage reel instead of showing a blank scene.
+  const useWebGL = forceWebGL && webglSupported && !webglFailed;
 
   if (!useWebGL && cinematicFailed) {
     return <WebGLFallback />;
