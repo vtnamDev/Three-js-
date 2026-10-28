@@ -30,6 +30,7 @@ export default function App() {
   });
   const forceWebGL = renderMode === 'webgl';
   const [cinematicFailed, setCinematicFailed] = useState<boolean>(false);
+  const [webglFailed, setWebglFailed] = useState<boolean>(false);
   const [quality, setQuality] = useState<QualityTierOption>('auto');
   const [reducedMotion, setReducedMotion] = useState<boolean>(() => getInitialReducedMotion());
   const [dockExpanded, setDockExpanded] = useState<boolean>(false);
@@ -118,9 +119,10 @@ export default function App() {
 
   // The product is a real-time 3D descent by default. The footage reel is retained only as an explicit demo mode (?mode=film).
   // If WebGL is unavailable, use the film fallback instead of trapping the visitor on a blank compatibility screen.
-  const useWebGL = forceWebGL || cinematicFailed;
+  // The real-time Three.js scene is the primary experience. Video is only a graceful fallback.
+  const useWebGL = webglSupported && !webglFailed;
 
-  if (useWebGL && !webglSupported) {
+  if (!useWebGL && cinematicFailed) {
     return <WebGLFallback />;
   }
 
@@ -133,16 +135,20 @@ export default function App() {
           reducedMotion={reducedMotion}
           onTelemetry={setTelemetry}
           onLoaderState={setLoaderState}
+          onFallback={() => {
+            setWebglFailed(true);
+            setLoaderState({ status: 'loading', progressPercent: null, message: 'WebGL không khởi tạo được; đang chuyển sang cảnh quay dự phòng.' });
+          }}
         />
       ) : (
         <CinematicReel
           reducedMotion={reducedMotion}
           quality={quality}
           onTelemetry={setTelemetry}
-          onReady={() => setLoaderState({ status: 'ready', progressPercent: 100, message: 'Cảnh quay đại dương đã sẵn sàng.' })}
+          onReady={() => setLoaderState({ status: 'ready', progressPercent: 100, message: 'Cảnh quay dự phòng đã sẵn sàng.' })}
           onFallback={() => {
             setCinematicFailed(true);
-            setLoaderState({ status: 'loading', progressPercent: null, message: 'Không thể tải cảnh quay; đang chuyển sang chế độ 3D.' });
+            setLoaderState({ status: 'ready', progressPercent: 100, message: 'Đang sử dụng giao diện dự phòng tĩnh.' });
           }}
         />
       )}
