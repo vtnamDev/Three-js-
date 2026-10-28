@@ -363,7 +363,8 @@ export function CinematicReel({ reducedMotion, quality, onTelemetry, onReady, on
       progress = getProgress();
     };
     const onViewportChange = () => {
-      dpr = Math.min(window.devicePixelRatio || 1, window.innerWidth < 700 ? 1.2 : 1.55);
+      // Preserve the selected quality tier on resize; never silently raise mobile DPR above its cap.
+      dpr = Math.min(window.devicePixelRatio || 1, getDprCap());
       setCanvasSize();
       progress = getProgress();
     };
@@ -402,13 +403,31 @@ export function CinematicReel({ reducedMotion, quality, onTelemetry, onReady, on
 
       if (activeVideo && available.has(effectiveShot.clipId)) {
         drawn = drawCover(ctx, activeVideo, width, height, effectiveShot, drift);
-        lastDrawnClip = effectiveShot.clipId;
-      } else if (lastDrawnClip) {
+        if (drawn) lastDrawnClip = effectiveShot.clipId;
+      }
+
+      // Mobile browsers can temporarily evict a video's current frame while seeking or resuming.
+      // Keep the last valid underwater frame (or another decoded clip) instead of flashing to a flat gradient.
+      if (!drawn && lastDrawnClip) {
         const old = getVideo(lastDrawnClip);
-        if (old && old.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) drawn = drawCover(ctx, old, width, height, shot, drift);
+        const oldShot = SHOTS.find((candidate) => candidate.clipId === lastDrawnClip) ?? shot;
+        if (old && old.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) {
+          drawn = drawCover(ctx, old, width, height, oldShot, drift);
+        }
       }
       if (!drawn) {
-        drawFallbackGradient(width, height, progress);
+        for (const clipId of available) {
+          const backup = getVideo(clipId);
+          const backupShot = SHOTS.find((candidate) => candidate.clipId === clipId) ?? shot;
+          if (backup && drawCover(ctx, backup, width, height, backupShot, drift)) {
+            drawn = true;
+            lastDrawnClip = clipId;
+            break;
+          }
+        }
+      }
+      if (!drawn) {
+        drawFallbackGradient(ctx.canvas.width, ctx.canvas.height, progress);
       }
 
       // Cross-dissolve into the next chapter's moving footage during the final 11% of each chapter.
