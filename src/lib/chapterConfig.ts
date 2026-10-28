@@ -84,7 +84,7 @@ export const OCEAN_CHAPTERS: readonly OceanChapter[] = [
     causticStrength: 1.0,
     particleColor: 0xd8f8ff,
     particleOpacity: 0.72,
-    exposure: 1.16,
+    exposure: 1.02,
   },
   {
     index: 1,
@@ -115,7 +115,7 @@ export const OCEAN_CHAPTERS: readonly OceanChapter[] = [
     causticStrength: 0.62,
     particleColor: 0xbef0ff,
     particleOpacity: 0.66,
-    exposure: 1.12,
+    exposure: 1.02,
   },
   {
     index: 2,
@@ -146,7 +146,7 @@ export const OCEAN_CHAPTERS: readonly OceanChapter[] = [
     causticStrength: 0.22,
     particleColor: 0x9adcf5,
     particleOpacity: 0.58,
-    exposure: 1.08,
+    exposure: 0.99,
   },
   {
     index: 3,
@@ -177,7 +177,7 @@ export const OCEAN_CHAPTERS: readonly OceanChapter[] = [
     causticStrength: 0.04,
     particleColor: 0x80cbe8,
     particleOpacity: 0.52,
-    exposure: 1.06,
+    exposure: 0.98,
   },
   {
     index: 4,
@@ -208,7 +208,7 @@ export const OCEAN_CHAPTERS: readonly OceanChapter[] = [
     causticStrength: 0.0,
     particleColor: 0x6ab8de,
     particleOpacity: 0.45,
-    exposure: 1.05,
+    exposure: 0.97,
   },
   {
     index: 5,
@@ -239,7 +239,7 @@ export const OCEAN_CHAPTERS: readonly OceanChapter[] = [
     causticStrength: 0.0,
     particleColor: 0x7bc2db,
     particleOpacity: 0.48,
-    exposure: 1.06,
+    exposure: 0.98,
   },
   {
     index: 6,
@@ -270,7 +270,7 @@ export const OCEAN_CHAPTERS: readonly OceanChapter[] = [
     causticStrength: 0.0,
     particleColor: 0x75bed9,
     particleOpacity: 0.44,
-    exposure: 1.07,
+    exposure: 0.99,
   },
   {
     index: 7,
@@ -301,7 +301,7 @@ export const OCEAN_CHAPTERS: readonly OceanChapter[] = [
     causticStrength: 0.0,
     particleColor: 0x90e2fa,
     particleOpacity: 0.56,
-    exposure: 1.1,
+    exposure: 1.00,
   },
 ];
 

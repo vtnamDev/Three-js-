@@ -4,12 +4,17 @@ All 3D models, textures, shaders, and fonts used in **PELAGIC — THE DEEP DESCE
 
 ---
 
-## 1. V5 Hero — original procedural rounded reef fish (`src/lib/fishSwim.ts`)
+## 1. Hero Fish — Quaternius Animated Clownfish (public/assets/fish/clownfish-animated.glb)
 
-- **Model Title:** Original procedural rounded reef fish, inspired by warm clownfish coloration.
-- **Author / Origin:** Authored in project source using Three.js geometry/materials; no third-party hero mesh is bundled.
-- **License:** Original implementation code; not a scanned or species-certified model.
-- **Runtime:** Local procedural geometry with warm orange body, pale belly, animated tail and pectoral fins. The previous CC0 barramundi GLB remains only as a rollback file and is no longer loaded as the hero.
+- **Model Title:** Clownfish from the Animated Cute Fish Pack.
+- **Creator:** Quaternius.
+- **Source page:** https://quaternius.com/packs/cutefish.html
+- **Source file mirror:** https://github.com/trebeljahr/quaternius-showcase/blob/main/public/glb/cute_fish_pack/Clownfish.glb
+- **License:** **CC0-1.0**, as listed for the cute_fish_pack in the source pack's LICENSES.md. This is the model asset license, separate from the showcase code license.
+- **Original asset size:** approximately 169 KB (168,854 bytes).
+- **Rig / animation evidence:** one skinned mesh, six-joint armature plus endpoint, and six embedded clips: Swimming_Normal, Swimming_Fast, Swimming_Impulse, Attack, Death, and Out_Of_Water.
+- **PELAGIC modifications:** runtime material color/roughness/metalness tuning, model scale normalization, centered pivot, normal/fast swim blending, and subtle idle movement. The underlying mesh and animation clips are not re-authored.
+- **Attribution:** not required under CC0, but retained here for provenance and auditability.
 
 ---
 

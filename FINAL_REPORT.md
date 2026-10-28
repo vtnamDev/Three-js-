@@ -1,3 +1,4 @@
+> **Superseded by V5.1 (2026-10-28):** This report records the earlier V4 milestone and is retained as historical documentation. The current hero is a rigged Quaternius animated clownfish (public/assets/fish/clownfish-animated.glb), not Barramundi. Current code/test/deployment state is documented in V5_1_VISUAL_FIX_REPORT.md and GitHub Actions. Historical V4 screenshot/device-test claims do not prove the current V5.1 revision was visually accepted.
 # FINAL REPORT — PELAGIC V4: THE DEEP DESCENT
 
 ## 1. Executive Summary
