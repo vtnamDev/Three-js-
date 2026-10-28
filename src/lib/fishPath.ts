@@ -267,10 +267,14 @@ export function getCameraRigAtProgress(
 
   const portraitUpBias = isPortrait ? 0.16 : 0.0;
   const fov = isPortrait ? Math.min(52, beat.fov + 7) : beat.fov;
+  // Keep a lateral view on portrait devices. Interpolating the original negative-to-positive
+  // camera beats crossed through zero offset around 600 m, turning the fish nearly end-on.
+  // A consistent side and minimum offset keep the full body readable throughout the descent.
+  const mobileSideOffset = isPortrait ? Math.max(2.85, Math.abs(beat.rightOffset)) : beat.rightOffset;
 
   outCamPos
     .copy(_fishPos)
-    .addScaledVector(_horizRight, beat.rightOffset * portraitDistanceScale)
+    .addScaledVector(_horizRight, mobileSideOffset * portraitDistanceScale)
     .addScaledVector(_worldUp, beat.upOffset * portraitDistanceScale + portraitUpBias)
     .addScaledVector(_horizForward, -beat.backOffset * portraitDistanceScale);
 
