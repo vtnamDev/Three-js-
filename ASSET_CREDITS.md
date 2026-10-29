@@ -1,57 +1,24 @@
-# ASSET CREDITS & LICENSING LEDGER
+# PELAGIC V9 — Asset Credits & Licenses
 
-All 3D models, textures, shaders, and fonts used in **PELAGIC — THE DEEP DESCENT** have verified, permissive open licenses suitable for commercial/public web deployment on Vercel and source distribution. Zero assets were copied from `MoncyDev/Portfolio-Website`.
+## Hero fish: Barramundi (public/assets/fish/hero-barramundi.glb)
 
----
+- Source: Khronos Group glTF-Sample-Assets, Models/BarramundiFish.
+- License: CC0-1.0 public-domain dedication.
+- Upstream source and license evidence: https://github.com/KhronosGroup/glTF-Sample-Assets/tree/main/Models/BarramundiFish
+- This deployment uses the model retained in the repository's prior asset history and converted to WebP textures with glTF Transform. The output file is approximately 942 KB. The runtime builds a custom articulated rig around the loaded geometry.
 
-## 1. Hero Fish — Quaternius Animated Clownfish (public/assets/fish/clownfish-animated.glb)
+## School / fallback fish: Grey Snapper (public/assets/fish/grey-snapper.glb)
 
-- **Model Title:** Clownfish from the Animated Cute Fish Pack.
-- **Creator:** Quaternius.
-- **Source page:** https://quaternius.com/packs/cutefish.html
-- **Source file mirror:** https://github.com/trebeljahr/quaternius-showcase/blob/main/public/glb/cute_fish_pack/Clownfish.glb
-- **License:** **CC0-1.0**, as listed for the cute_fish_pack in the source pack's LICENSES.md. This is the model asset license, separate from the showcase code license.
-- **Original asset size:** approximately 169 KB (168,854 bytes).
-- **Rig / animation evidence:** one skinned mesh, six-joint armature plus endpoint, and six embedded clips: Swimming_Normal, Swimming_Fast, Swimming_Impulse, Attack, Death, and Out_Of_Water.
-- **PELAGIC modifications:** runtime material color/roughness/metalness tuning, model scale normalization, centered pivot, normal/fast swim blending, and subtle idle movement. The underlying mesh and animation clips are not re-authored.
-- **Attribution:** not required under CC0, but retained here for provenance and auditability.
+- Source: Babylon.js Assets repository, meshes/Demos/UnderWaterScene/fish/greySnapper_vertColor.glb.
+- License: Creative Commons Attribution 4.0 International (CC BY 4.0): https://github.com/BabylonJS/Assets/blob/master/LICENSE.md
+- Attribution: "Grey Snapper 3D model from the Babylon.js Assets repository by the Babylon.js Team, licensed under CC BY 4.0."
 
----
+## Legacy comparison asset: clownfish (public/assets/fish/clownfish-animated.glb)
 
-## 2. Secondary Schooling 3D Fish Model (`public/assets/fish/grey-snapper.glb`)
+- Creator: Quaternius, Animated Cute Fish Pack.
+- License: CC0-1.0, as recorded in the asset pack license manifest: https://quaternius.com/packs/cutefish.html
+- Retained as an optional baseline/fallback, not the default hero in V9.
 
-- **Model Title:** Grey Snapper (`Lutjanus griseus` — `greySnapper_vertColor.glb`)
-- **Author / Origin:** Babylon.js Team (`Patrick Ryan` / Microsoft contributors, `BabylonJS/Assets`)
-- **Source URL:** `https://github.com/BabylonJS/Assets/blob/master/meshes/Demos/UnderWaterScene/fish/greySnapper_vertColor.glb`
-- **License:** **Creative Commons Attribution 4.0 International (CC BY 4.0)**
-- **License Verification:** Verified directly in upstream `BabylonJS/Assets/LICENSE.md` (`Creative Commons Attribution 4.0 International`).
-- **Attribution Statement:** *"Grey Snapper 3D model from the Babylon.js Assets repository by the Babylon.js Team, licensed under CC BY 4.0."*
-- **Modifications Made for PELAGIC V4:**
-  - Normalized scale (`0.95 m` body length) and augmented with a lightweight GPU vertex tail-propulsion shader for pelagic schooling orbits in Chapters 01–03.
+## Procedural materials, shaders and audio
 
----
-
-## 3. Procedural Environment Textures, Shaders & Lighting
-
-- **Geological Bump/Roughness Maps, Caustics & Marine Snow Sprites (`src/experience/proceduralTextures.ts`):**
-  - Authored from scratch for this project (`100%` procedural `HTMLCanvasElement` -> `THREE.CanvasTexture`, zero external image fetches).
-- **PBR Environment Illumination (`RoomEnvironment`):**
-  - Provided by `three` (`three/addons/environments/RoomEnvironment.js`), **MIT License**.
-
----
-
-## 4. Typography
-
-- **Cormorant Garamond**, **Plus Jakarta Sans**, and **JetBrains Mono** served via Google Fonts (**SIL Open Font License 1.1**).
-
----
-
-## V5.2 Cinematic footage (Pexels)
-
-The default cinematic mode composites three real underwater clips into a scroll-linked canvas. Video files remain hosted by Pexels and are streamed at runtime; this repository does not redistribute unaltered copies. Pexels' official license permits free use and modification in websites/apps; attribution is not required but creator/source links are kept here for provenance. Check the current terms at https://www.pexels.com/license/ before commercial republishing.
-
-- **Clownfish surface scene:** Across Wong, “Underwater video of clownfish” — https://www.pexels.com/video/underwater-video-of-clownfish-7008971/ (runtime MP4 verified by Chromium).
-- **Coral reef and tropical fish:** Alex Mesel, “Underwater footage of tropical fish in a coral reef” — https://www.pexels.com/video/underwater-footage-of-tropical-fish-in-a-coral-reef-11273418/ (runtime MP4 verified by Chromium).
-- **Dark bioluminescent scene:** Nothing Ahead, “Jellyfish in the dark with green and blue lights” — https://www.pexels.com/video/jellyfish-in-the-dark-with-green-and-blue-lights-17177445/ (runtime MP4 verified by Chromium).
-
-**Rendering distinction:** The cinematic mode uses genuine footage plus Canvas grading, caustics, particles, dark-water atmosphere and scroll-controlled chapter timing. It is not represented as a physically simulated, fully 3D ocean or one continuously modelled fish.
+Ocean caustics, rock/sediment textures, marine particles, title choreography and synthesized ocean audio are ���q�^

@@ -34,8 +34,38 @@
   animation: pelagicIndeterminate 1.45s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .pelagic-indeterminate-bar {
-    animation-duration: 3.2s;
+/* E18 â€” Eight chapter-specific title reveal transitions (diacritic-safe clip bounds & immediate legibility) */
+@keyframes pelagicClipRise {
+  0% {
+    opacity: 0.45;
+    clip-path: inset(32% 0 -22% 0);
+    transform: translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    clip-path: inset(-24% 0 -24% 0);
+    transform: translateY(0);
   }
 }
+
+@keyframes pelagicHorizonWipe {
+  0% {
+    opacity: 0.45;
+    clip-path: inset(-24% 38% -24% 0);
+    transform: translateX(-10px);
+  }
+  100% {
+    opacity: 1;
+    clip-path: inset(-24% -6% -24% 0);
+    transform: translateX(0);
+  }
+}
+
+@keyframes pelagicSplitDescent {
+  0% {
+    opacity: 0.45;
+    clip-path: inset(-24% 0 28% 0);
+    transform: translateY(-9px);
+  }
+  100% {
+    ¶»§q«^

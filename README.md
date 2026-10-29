@@ -1,75 +1,27 @@
-# PELAGIC — THE DEEP DESCENT
+# PELAGIC V9 — The Deep Descent
 
-Trải nghiệm điện ảnh dưới nước điều khiển bằng thao tác cuộn trang (`scroll` / `touch` / bàn phím), chuyển cảnh qua **8 tầng độ sâu** từ mặt nước ngập nắng (`0 m`) xuống vực thẳm Hadal. Chế độ mặc định ghép cảnh quay dưới nước thật vào một canvas toàn màn hình; chế độ Three.js cũ vẫn có thể mở bằng `?mode=webgl`.
+PELAGIC is a real-time Three.js/WebGL ocean journey controlled by native page scroll. The production path is the 3D renderer, not a stock-video canvas. It follows a fish through eight Vietnamese-titled depth chapters from the sunlit surface to the Hadal trench.
 
----
+## V9 implementation
 
-## Kiến trúc kỹ thuật chính
+- A smooth CC0 Khronos Barramundi GLB is the primary hero. Its textures are converted to WebP; the runtime builds an articulated spine/pectoral rig and maintains gentle swimming while scroll is stationary.
+- A spherical/orbit camera rig tracks the fish along a diagonal-and-lateral 3D descent. Fish position, camera, depth HUD, chapter title choreography and atmospheric parameters are driven by one normalized scroll progress value.
+- src/experience/effectRegistry.ts contains 24 typed effect families, with chapter-specific selection, cleanup and quality-tier controls.
+- The scene includes procedural caustics, ocean fog/lighting, geology, marine snow, bioluminescence, schooling fish, and resilient asset-loading fallbacks.
+- Includes reduced-motion handling, responsive portrait camera framing, low/balanced/high quality profiles, keyboard controls, field notes and opt-in synthesized ocean audio.
 
-- **Stack:** Vite + React 19 + TypeScript + Three.js (`THREE.WebGLRenderer` đơn nhất, một vòng lặp render duy nhất).
-- **Cinematic Reel (`src/experience/CinematicReel.tsx`):**
-  - Chế độ mặc định dùng cảnh quay dưới nước thật từ Pexels, chuyển sang 8 đoạn tương ứng với 8 tầng biển. Progress cuộn điều khiển timestamp của video; khi dừng cuộn, cảnh quay tiếp tục chuyển động nhẹ.
-  - Canvas thêm color grade riêng từng tầng, cross-dissolve, caustics mặt nước, marine snow, vignette và zoom/crop theo composition.
-  - Giữ HUD, thanh chọn tầng, Sổ tay Hải dương và reduced-motion. Nếu toàn bộ clip lỗi tải, tự fallback sang scene Three.js. `?mode=webgl` ép bật scene Three.js cũ.
-  - Cảnh quay có độ chân thực quang học của video nguồn; đây là compositing canvas, không phải mô phỏng vật lý toàn bộ đại dương bằng 3D.
-- **Một nguồn tiến độ cuộn chuẩn tắc (`src/lib/scrollDirector.ts`, `src/lib/fishPath.ts`, `src/lib/chapterConfig.ts`):**
-  - `scrollProgress ∈ [0, 1]` điều khiển đồng bộ đường bơi 3D `CatmullRomCurve3`, góc nghiêng thân cá khi cua (`bankRadians`), khung hình camera thích ứng tỷ lệ màn hình dọc/ngang, màu nước, mật độ sương mù `FogExp2`, hệ đèn 3 điểm, đàn cá phụ (`grey-snapper.glb`), rừng tảo bẹ, sứa phát quang, đồng bằng trầm tích, hẻm vực kiến tạo và khe nứt lạnh Hadal.
-  - Cuộn ngược lên khôi phục chính xác độ sâu, ánh sáng và tầng biển trước đó.
-- **Khả năng tiếp cận & Tương thích:**
-  - Tôn trọng `prefers-reduced-motion` và có nút bật/tắt **Giảm chuyển động** + bộ chọn mức đồ họa (`Auto / High / Balanced / Low`) ngay trong thanh công cụ gọn dưới đáy màn hình.
-  - Tự động phát hiện trình duyệt không có WebGL (hoặc kiểm thử qua `?webgl=fallback`) để hiển thị giao diện hành trình 8 tầng biển tương thích đầy đủ.
-  - Ngăn kéo tùy chọn **Sổ tay Hải dương** kết nối endpoint `/api/pelagic-notes` khi chạy full-stack hoặc tự động chuyển sang ghi chép hải dương học tĩnh khi triển khai dạng static site trên Vercel.
+## Local development
 
----
+Requires Node.js 20+ and npm 10+.
 
-## Cài đặt & Chạy trên máy cục bộ
+    npm ci
+    npm run typecheck
+    npm test
+    npm run dev
 
-Yêu cầu **Node.js >= 20** và `npm`:
+## Production build
 
-```bash
-# 1. Cài đặt dependencies
-npm install
+    npm run build
+    npm run preview
 
-# 2. Chạy kiểm thử đơn vị (logic đường bơi, độ sâu, 8 tầng biển & chuyển động vẫy đuôi)
-npm test
-
-# 3. Kiểm tra kiểu TypeScript
-npm run typecheck
-
-# 4. Chạy môi trường phát triển (cổng 3000)
-npm run dev
-
-# 5. Build bản production tĩnh (xuất ra thư mục dist/)
-npm run build
-
-# 6. Xem thử bản build tĩnh
-npm run preview
-```
-
----
-
-## Triển khai lên Vercel (Static Vite Preset)
-
-Dự án tương thích trực tiếp với cấu hình Vite mặc định của Vercel mà không cần cấu hình phức tạp:
-
-- **Framework Preset:** `Vite`
-- **Install Command:** `npm install`
-- **Build Command:** `npm run build`
-- **Output Directory:** `dist`
-
-Các mô hình 3D hiện dùng (`public/assets/fish/*.glb`, gồm cá hề hoạt ảnh ~169 KB và cá phụ Grey Snapper) được phục vụ từ đường dẫn tương đối gốc `/assets/fish/...` và được đóng gói trực tiếp vào `dist/assets/fish/`.
-
----
-
-## Tham số URL hỗ trợ kiểm thử (QA Hooks)
-
-- `?webgl=fallback` — Mở chế độ giao diện tương thích không cần WebGL.
-- `?fish=fallback` — Buộc kích hoạt mô hình cá 3D đa khớp nối dự phòng.
-- `?motion=reduced` — Khởi động sẵn ở chế độ Giảm chuyển động.
-- `?autostart=1` — Bỏ qua màn hình chờ tải ban đầu trong các bài kiểm thử tự động.
-
----
-
-## Giấy phép tài nguyên
-
-Xem chi tiết nguồn gốc và giấy phép (`CC0-1.0`, `CC-BY-4.0`, `MIT`, `OFL-1.1`) trong tệp [`ASSET_CREDITS.md`](./ASSET_CREDITS.md) và quá trình đánh giá mô hình trong [`ASSET_RESEARCH.md`](./ASSET_RESEARCH.md).
+Vite emits static output in dist/. vercel.json configures the existing Vercel static deployment.���q�^
