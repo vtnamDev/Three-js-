@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "tsx server.ts",
     "start": "node server.ts",
-    "build": "vite build",
+    "build": "vite build --configLoader runner",
     "preview": "vite preview --port=3000 --host=0.0.0.0",
     "test": "tsx --test src/lib/pelagicLogic.test.ts",
     "typecheck": "tsc --noEmit",
