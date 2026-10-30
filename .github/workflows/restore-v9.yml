@@ -1,0 +1,24 @@
+name: Restore complete PELAGIC V9 source
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.restore/**'
+      - 'scripts/restore-source.mjs'
+permissions:
+  contents: write
+jobs:
+  restore:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Restore and verify source archive
+        run: node scripts/restore-source.mjs
+      - name: Commit restored project
+        run: |
+          rm -rf .restore scripts/restore-source.mjs
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "build: restore complete Pelagic V9 source [v9-restored]"
+          git push
