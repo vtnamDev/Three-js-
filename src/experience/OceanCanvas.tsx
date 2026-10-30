@@ -46,4 +46,24 @@ export function OceanCanvas({
 
     return () => {
       controller.dispose();
-      controllerRef.current = null;¶»§q«^
+      controllerRef.current = null;
+    };
+  }, []);
+
+  useEffect(() => {
+    controllerRef.current?.setQualityOption(quality);
+  }, [quality]);
+
+  useEffect(() => {
+    controllerRef.current?.setReducedMotion(reducedMotion);
+  }, [reducedMotion]);
+
+  return (
+    <div
+      ref={mountRef}
+      data-testid="pelagic-stage-mount"
+      aria-hidden="true"
+      className="fixed inset-0 z-0 h-dvh w-full overflow-hidden bg-[#020813]"
+    />
+  );
+}

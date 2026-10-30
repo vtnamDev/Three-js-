@@ -68,4 +68,128 @@
     transform: translateY(-9px);
   }
   100% {
-    ¶»§q«^
+    opacity: 1;
+    clip-path: inset(-24% 0 -24% 0);
+    transform: translateY(0);
+  }
+}
+
+@keyframes pelagicStaggerTrack {
+  0% {
+    opacity: 0.45;
+    letter-spacing: 0.045em;
+    transform: translateY(7px);
+  }
+  100% {
+    opacity: 1;
+    letter-spacing: -0.025em;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pelagicAbyssFocus {
+  0% {
+    opacity: 0.45;
+    filter: blur(2.5px);
+    transform: scale(0.982);
+  }
+  100% {
+    opacity: 1;
+    filter: blur(0);
+    transform: scale(1);
+  }
+}
+
+@keyframes pelagicSedimentLine {
+  0% {
+    opacity: 0.48;
+    transform: translateX(12px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes pelagicCanyonShear {
+  0% {
+    opacity: 0.48;
+    clip-path: inset(-24% 0 -24% 32%);
+    transform: translateX(10px) skewX(-2.5deg);
+  }
+  100% {
+    opacity: 1;
+    clip-path: inset(-24% 0 -24% -6%);
+    transform: translateX(0) skewX(0deg);
+  }
+}
+
+@keyframes pelagicHadalSanctuary {
+  0% {
+    opacity: 0.48;
+    transform: translateY(9px);
+    text-shadow: 0 0 22px rgba(102, 232, 255, 0.55);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+    text-shadow: 0 2px 14px rgba(0, 0, 0, 0.9);
+  }
+}
+
+.pelagic-reveal-clip-rise {
+  animation: pelagicClipRise 0.38s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.pelagic-reveal-horizon-wipe {
+  animation: pelagicHorizonWipe 0.4s cubic-bezier(0.2, 0.95, 0.3, 1) both;
+}
+
+.pelagic-reveal-split-descent {
+  animation: pelagicSplitDescent 0.38s cubic-bezier(0.18, 0.95, 0.32, 1) both;
+}
+
+.pelagic-reveal-stagger-track {
+  animation: pelagicStaggerTrack 0.42s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.pelagic-reveal-abyss-focus {
+  animation: pelagicAbyssFocus 0.44s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.pelagic-reveal-sediment-line {
+  animation: pelagicSedimentLine 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.pelagic-reveal-canyon-shear {
+  animation: pelagicCanyonShear 0.4s cubic-bezier(0.18, 0.96, 0.3, 1) both;
+}
+
+.pelagic-reveal-hadal-sanctuary {
+  animation: pelagicHadalSanctuary 0.46s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.pelagic-reveal-reduced {
+  animation: none;
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pelagic-indeterminate-bar {
+    animation-duration: 3.2s;
+  }
+
+  .pelagic-reveal-clip-rise,
+  .pelagic-reveal-horizon-wipe,
+  .pelagic-reveal-split-descent,
+  .pelagic-reveal-stagger-track,
+  .pelagic-reveal-abyss-focus,
+  .pelagic-reveal-sediment-line,
+  .pelagic-reveal-canyon-shear,
+  .pelagic-reveal-hadal-sanctuary {
+    animation: none;
+    clip-path: none;
+    filter: none;
+    transform: none;
+  }
+}

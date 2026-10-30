@@ -47,4 +47,58 @@ export class OceanAmbienceEngine {
       let lastOut = 0;
       for (let i = 0; i < length; i++) {
         const white = Math.random() * 2 - 1;
-        lastOut = (lastOut + 0.02 * white) ¶»§q«^
+        lastOut = (lastOut + 0.02 * white) / 1.02;
+        // Crossfade loop ends smoothly
+        const env =
+          i < 2048
+            ? i / 2048
+            : i > length - 2048
+              ? (length - i) / 2048
+              : 1.0;
+        data[i] = lastOut * 2.4 * env;
+      }
+
+      const noiseSrc = ctx.createBufferSource();
+      noiseSrc.buffer = buffer;
+      noiseSrc.loop = true;
+
+      const filter = ctx.createBiquadFilter();
+      filter.type = 'lowpass';
+      filter.frequency.value = 340;
+      filter.Q.value = 0.85;
+      this.filter = filter;
+
+      const masterGain = ctx.createGain();
+      masterGain.gain.value = 0.0001;
+      this.masterGain = masterGain;
+
+      noiseSrc.connect(filter);
+      filter.connect(masterGain);
+      masterGain.connect(ctx.destination);
+      noiseSrc.start();
+    }
+
+    if (this.ctx && this.masterGain) {
+      if (this.ctx.state === 'suspended') {
+        void this.ctx.resume();
+      }
+      this.masterGain.gain.setTargetAtTime(0.11, this.ctx.currentTime, 0.35);
+    }
+  }
+
+  public setDepthProgress(progress: number): void {
+    if (!this.enabled || !this.ctx || !this.filter) return;
+    // Warmer, brighter reef surf at surface (420 Hz) -> deep, quiet abyssal resonance (135 Hz)
+    const targetCutoff = 420 - Math.min(1, Math.max(0, progress)) * 285;
+    this.filter.frequency.setTargetAtTime(targetCutoff, this.ctx.currentTime, 0.3);
+  }
+
+  public dispose(): void {
+    if (this.ctx) {
+      void this.ctx.close();
+      this.ctx = null;
+      this.masterGain = null;
+      this.filter = null;
+    }
+  }
+}

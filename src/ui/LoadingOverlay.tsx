@@ -57,4 +57,28 @@ export function LoadingOverlay({ loaderState }: LoadingOverlayProps) {
       <div className="w-full max-w-md space-y-5">
         <div className="space-y-1.5">
           <p className="font-mono text-[11px] tracking-[0.22em] text-cyan-200/75">
-            PELAGIC — TH���q�^
+            PELAGIC — THE DEEP DESCENT
+          </p>
+          <h2 className="font-serif text-2xl font-medium tracking-tight text-slate-100 sm:text-3xl">
+            {isContextLost ? 'Tạm ngưng ngữ cảnh đồ họa 3D' : 'Chuẩn bị hành trình lặn sâu'}
+          </h2>
+        </div>
+
+        <div className="h-[2px] w-full overflow-hidden bg-cyan-200/15">
+          {pct !== null ? (
+            <div
+              className={`h-full bg-cyan-300 transition-[width] duration-200 ease-out ${getProgressWidthClass(pct)}`}
+            />
+          ) : (
+            <div className="pelagic-indeterminate-bar h-full w-2/5 bg-cyan-300/85" />
+          )}
+        </div>
+
+        <div className="flex items-center justify-between font-mono text-xs text-slate-300/80">
+          <span>{loaderState.message}</span>
+          {pct !== null && <span className="tabular-nums">{pct}%</span>}
+        </div>
+      </div>
+    </div>
+  );
+}

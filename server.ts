@@ -23,21 +23,53 @@ function getGeminiClient(): GoogleGenAI | null {
   });
 }
 
+const ROOT_SOURCE_FILES = [
+  'package.json',
+  'tsconfig.json',
+  'vite.config.ts',
+  'vercel.json',
+  'index.html',
+  'server.ts',
+  'metadata.json',
+  '.env.example',
+  'README.md',
+  'ASSET_CREDITS.md',
+  'CHANGELOG_V9.md',
+  'ASSET_RESEARCH.md',
+  'FINAL_REPORT.md',
+  'WORKLOG.md',
+];
+
+function collectDirectoryFiles(baseDir: string, relDir: string, out: string[]): void {
+  const fullDir = path.join(baseDir, relDir);
+  if (!fs.existsSync(fullDir)) return;
+  const entries = fs.readdirSync(fullDir, { withFileTypes: true });
+  entries.sort((a, b) => a.name.localeCompare(b.name));
+  for (const entry of entries) {
+    const relPath = path.posix.join(relDir, entry.name);
+    if (entry.isDirectory()) {
+      collectDirectoryFiles(baseDir, relPath, out);
+    } else if (/\.(ts|tsx|css|json|md|html|csv)$/i.test(entry.name)) {
+      out.push(relPath);
+    }
+  }
+}
+
 async function startServer() {
   const app = express();
   const PORT = Number(process.env.PORT) || 3000;
 
   app.use(express.json({ limit: '256kb' }));
 
-  // Server-side Marine Biology Field Notes API (uses free/standard Gemini models only)
+  // Server-side Marine Biology Field Notes API
   app.post('/api/pelagic-notes', async (req, res) => {
     try {
       const {
         question,
         mode = 'fast',
         chapterCode = '01',
-        zoneNameVi = 'Mặt Nước Ánh Dương',
-        zoneNameEn = 'Epipelagic Surface',
+        zoneNameVi = 'Rạn San Hô Ánh Dương',
+        zoneNameEn = 'Sunlight Coral Crest',
         depthMeters = 0,
         scientificNote = '',
         history = [],
@@ -51,7 +83,7 @@ async function startServer() {
       const ai = getGeminiClient();
       if (!ai) {
         res.status(503).json({
-          error: 'Chưa cấu hình khóa GEMINI_API_KEY trên máy chủ.',
+          error: 'Chưa cấu hình khóa API trên máy chủ.',
         });
         return;
       }
@@ -59,8 +91,8 @@ async function startServer() {
       const isDeep = mode === 'deep';
       const modelName = isDeep ? 'gemini-3.8-flash' : 'gemini-3.1-flash-lite';
       const modelLabel = isDeep
-        ? 'Gemini 3.8 Flash · Phân tích chuyên sâu'
-        : 'Gemini 3.1 Flash-Lite · Phản hồi tức thì';
+        ? 'Sổ tay Hải dương · Phân tích chuyên sâu'
+        : 'Sổ tay Hải dương · Phản hồi tức thì';
 
       const historyContext = Array.isArray(history)
         ? history
@@ -99,21 +131,63 @@ async function startServer() {
         modelLabel,
       });
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Lỗi máy chủ khi gọi Gemini API.';
+      const message = err instanceof Error ? err.message : 'Lỗi máy chủ khi xử lý ghi chú.';
       res.status(502).json({ error: message });
     }
   });
 
-  // Direct download route for the verified PELAGIC_V4_SOURCE.zip archive
-  app.get(['/PELAGIC_V4_SOURCE.zip', '/api/download-source'], (_req, res) => {
-    const zipPath = path.join(__dirname, 'PELAGIC_V4_SOURCE.zip');
-    if (!fs.existsSync(zipPath)) {
-      res.status(404).json({ error: 'PELAGIC_V4_SOURCE.zip not found on server.' });
-      return;
+  // Live Source Code Explorer API so users can inspect & copy all project source files
+  app.get('/api/source-files', (_req, res) => {
+    try {
+      const relPaths: string[] = [];
+      collectDirectoryFiles(__dirname, 'src', relPaths);
+      collectDirectoryFiles(__dirname, 'reports', relPaths);
+      for (const rootFile of ROOT_SOURCE_FILES) {
+        if (fs.existsSync(path.join(__dirname, rootFile))) {
+          relPaths.push(rootFile);
+        }
+      }
+
+      const files = relPaths.map((relPath) => {
+        const absPath = path.join(__dirname, relPath);
+        const content = fs.readFileSync(absPath, 'utf8');
+        return {
+          path: relPath,
+          sizeBytes: Buffer.byteLength(content, 'utf8'),
+          content,
+        };
+      });
+
+      res.json({ files });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Unable to read source files.';
+      res.status(500).json({ error: message });
     }
-    res.setHeader('Content-Type', 'application/zip');
-    res.download(zipPath, 'PELAGIC_V4_SOURCE.zip');
   });
+
+  // Direct download route for the verified PELAGIC_V9_SOURCE.zip archive (with backward-compatible aliases)
+  app.get(
+    [
+      '/PELAGIC_V9_SOURCE.zip',
+      '/PELAGIC_V5_SOURCE.zip',
+      '/PELAGIC_V4_SOURCE.zip',
+      '/api/download-source',
+    ],
+    (_req, res) => {
+      const candidates = [
+        path.join(__dirname, 'PELAGIC_V9_SOURCE.zip'),
+        path.join(__dirname, 'public', 'PELAGIC_V9_SOURCE.zip'),
+        path.join(__dirname, 'dist', 'PELAGIC_V9_SOURCE.zip'),
+      ];
+      const zipPath = candidates.find((p) => fs.existsSync(p));
+      if (!zipPath) {
+        res.status(404).json({ error: 'PELAGIC_V9_SOURCE.zip not found on server.' });
+        return;
+      }
+      res.setHeader('Content-Type', 'application/zip');
+      res.download(zipPath, 'PELAGIC_V9_SOURCE.zip');
+    },
+  );
 
   if (process.env.NODE_ENV !== 'production') {
     const { createServer: createViteServer } = await import('vite');
