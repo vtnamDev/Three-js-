@@ -381,7 +381,7 @@ export function buildOceanWorld(
   disposableMaterials.push(shallowLimestoneMat);
 
   const reefSandMat = new THREE.MeshStandardMaterial({
-    color: 0x7da6b2,
+    color: 0x567f8b,
     roughness: 0.88,
     metalness: 0.03,
     bumpMap: textures.rockBumpMap,
@@ -516,8 +516,8 @@ export function buildOceanWorld(
         float c2 = texture2D(uCausticTex, cUv2).b;
         float caustic = smoothstep(0.22, 0.88, (c1 + c2) * 0.55);
         float radialFade = 1.0 - smoothstep(0.18, 0.5, distance(vUv, vec2(0.5)));
-        vec3 col = mix(vec3(0.08, 0.48, 0.68), vec3(0.76, 0.97, 1.0), caustic * 0.72 + vElev * 0.16);
-        gl_FragColor = vec4(col, radialFade * uStrength * (0.28 + caustic * 0.34));
+        vec3 col = mix(vec3(0.055, 0.31, 0.48), vec3(0.42, 0.72, 0.82), caustic * 0.58 + vElev * 0.10);
+        gl_FragColor = vec4(col, radialFade * uStrength * (0.19 + caustic * 0.22));
       }
     `,
   });
@@ -566,8 +566,8 @@ export function buildOceanWorld(
         float edgeSoft = pow(abs(dot(vNormalView, vViewDir)), 1.95);
         float verticalFade = smoothstep(0.0, 0.26, vUv.y) * smoothstep(1.0, 0.68, vUv.y);
         float shimmer = 0.78 + 0.22 * sin(uTime * 0.9 + vUv.x * 12.566);
-        vec3 col = mix(vec3(0.24, 0.76, 0.94), vec3(0.92, 0.98, 0.88), vUv.y);
-        gl_FragColor = vec4(col, edgeSoft * verticalFade * shimmer * uOpacity * 0.34);
+        vec3 col = mix(vec3(0.16, 0.52, 0.70), vec3(0.56, 0.78, 0.82), vUv.y);
+        gl_FragColor = vec4(col, edgeSoft * verticalFade * shimmer * uOpacity * 0.24);
       }
     `,
   });

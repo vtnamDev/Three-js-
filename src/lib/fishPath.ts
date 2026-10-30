@@ -144,7 +144,7 @@ interface CameraBeat {
 
 const CAMERA_BEATS: readonly CameraBeat[] = [
   {
-    // Ch01 Surface (0.00): Heroic 3/4 front-side angle (+64°), gentle low-angle look up toward sunlit water ceiling
+    // Ch01 Surface: establish the fish from a front-side cinematic angle.
     at: 0.0,
     orbitAzimuthDeg: 64,
     elevationDeg: 4.5,
@@ -159,8 +159,8 @@ const CAMERA_BEATS: readonly CameraBeat[] = [
   {
     // Ch02 Blue Garden (0.17): Lateral tracking dolly (+88° broadside) revealing kelp forest & schooling tangs
     at: 0.17,
-    orbitAzimuthDeg: 88,
-    elevationDeg: 8.5,
+    orbitAzimuthDeg: 112,
+    elevationDeg: -8.0,
     lateralTrackOffset: 0.28,
     craneTargetOffsetY: -0.05,
     lookAheadForward: 0.34,
@@ -172,8 +172,8 @@ const CAMERA_BEATS: readonly CameraBeat[] = [
   {
     // Ch03 Last Sunlight (0.30): Pull-back crane + rear-3/4 vista (+114°) revealing asymmetric continental shelf & abyssal drop-off
     at: 0.30,
-    orbitAzimuthDeg: 114,
-    elevationDeg: 14.5,
+    orbitAzimuthDeg: 164,
+    elevationDeg: 15.5,
     lateralTrackOffset: -0.32,
     craneTargetOffsetY: -0.18,
     lookAheadForward: 0.46,
@@ -185,8 +185,8 @@ const CAMERA_BEATS: readonly CameraBeat[] = [
   {
     // Ch04 Twilight (0.43): 32° forward orbit (+82° -> +56°) banking past basalt stacks & pulsing Mesopelagic jellies
     at: 0.43,
-    orbitAzimuthDeg: 58,
-    elevationDeg: -3.5,
+    orbitAzimuthDeg: 218,
+    elevationDeg: -10.5,
     lateralTrackOffset: 0.22,
     craneTargetOffsetY: 0.04,
     lookAheadForward: 0.28,
@@ -198,8 +198,8 @@ const CAMERA_BEATS: readonly CameraBeat[] = [
   {
     // Ch05 Midnight (0.56): Wide scale lateral tracking (+92°), lowered horizon in vast Bathypelagic darkness
     at: 0.56,
-    orbitAzimuthDeg: 92,
-    elevationDeg: 6.0,
+    orbitAzimuthDeg: 272,
+    elevationDeg: 7.0,
     lateralTrackOffset: -0.24,
     craneTargetOffsetY: -0.08,
     lookAheadForward: 0.36,
@@ -211,8 +211,8 @@ const CAMERA_BEATS: readonly CameraBeat[] = [
   {
     // Ch06 Abyssal Plain (0.69): Low-altitude crane drop (+78°, +15° elevation) exposing benthic sediment ridges & silt plumes below
     at: 0.69,
-    orbitAzimuthDeg: 78,
-    elevationDeg: 15.0,
+    orbitAzimuthDeg: 326,
+    elevationDeg: 20.0,
     lateralTrackOffset: 0.26,
     craneTargetOffsetY: -0.24,
     lookAheadForward: 0.42,
@@ -224,8 +224,8 @@ const CAMERA_BEATS: readonly CameraBeat[] = [
   {
     // Ch07 Abyssal Canyon (0.82): Dynamic S-turn rear-quarter pursuit (+118°) framing asymmetric canyon walls & basalt archway ahead
     at: 0.82,
-    orbitAzimuthDeg: 118,
-    elevationDeg: 10.5,
+    orbitAzimuthDeg: 380,
+    elevationDeg: -6.0,
     lateralTrackOffset: -0.28,
     craneTargetOffsetY: -0.12,
     lookAheadForward: 0.52,
@@ -237,7 +237,7 @@ const CAMERA_BEATS: readonly CameraBeat[] = [
   {
     // Ch08 Hadal Sanctuary (0.96): Ceremonial orbit + crane reveal (+72°, +12.5°) settling over luminous cold-seep fissure
     at: 0.96,
-    orbitAzimuthDeg: 72,
+    orbitAzimuthDeg: 424,
     elevationDeg: 12.5,
     lateralTrackOffset: 0.14,
     craneTargetOffsetY: -0.22,
@@ -303,6 +303,7 @@ export function getCameraRigAtProgress(
   outLookAt = new THREE.Vector3(),
   fishBounds: HeroFishBounds = DEFAULT_HERO_FISH_BOUNDS,
   outQuaternion = new THREE.Quaternion(),
+  elapsedTime = 0,
 ): CameraRigState {
   const p = clamp01(progress);
   const safeAspect = Number.isFinite(aspect) && aspect > 0.1 ? aspect : 16 / 9;
@@ -323,11 +324,16 @@ export function getCameraRigAtProgress(
   const portraitBlend = 1.0 - smoothstep01((safeAspect - 0.52) / (1.35 - 0.52));
   const fov = THREE.MathUtils.lerp(beat.fov, Math.min(48, beat.fov + 5.0), portraitBlend);
 
-  // On narrow portrait viewports, bias azimuth slightly closer to 86° broadside so head+tail fit comfortably without clipping
-  const effectiveAzimuthDeg = THREE.MathUtils.lerp(
-    beat.orbitAzimuthDeg,
-    THREE.MathUtils.lerp(beat.orbitAzimuthDeg, 86, 0.35),
-    portraitBlend,
+  // Preserve the authored orbit on portrait screens. Camera distance/FOV compensate
+  // for narrow screens; clamping azimuth here previously erased most of the orbit.
+  const idleOrbitDrift = Number.isFinite(elapsedTime) && elapsedTime > 0
+    ? Math.sin(elapsedTime * 0.2) * 1.65
+    : 0;
+  const effectiveAzimuthDeg = beat.orbitAzimuthDeg + idleOrbitDrift;
+  const effectiveElevationDeg = THREE.MathUtils.clamp(
+    beat.elevationDeg + (elapsedTime > 0 ? Math.sin(elapsedTime * 0.17 + p * Math.PI * 2) * 0.8 : 0),
+    -18,
+    24,
   );
 
   const targetWidthOccupancy = THREE.MathUtils.lerp(
@@ -343,11 +349,13 @@ export function getCameraRigAtProgress(
   const effectiveSpan = fishBounds.length * 1.06;
   const distForWidth = effectiveSpan / (2.0 * targetWidthOccupancy * halfTanH);
   const distForHeight = (fishBounds.height * 1.15) / (2.0 * 0.28 * halfTanV);
-  const distance = Math.max(3.75, distForWidth, distForHeight);
+  // A restrained two-beat dolly adds parallax without making the fish jump in size.
+  const dollyBreath = 1 + (isPortrait ? 0.035 : 0.055) * Math.sin(p * Math.PI * 4 - 0.55);
+  const distance = Math.max(3.75, Math.max(distForWidth, distForHeight) * dollyBreath);
 
   // Spherical orbital direction around fish horizontal heading
   const azRad = THREE.MathUtils.degToRad(effectiveAzimuthDeg);
-  const elRad = THREE.MathUtils.degToRad(beat.elevationDeg);
+  const elRad = THREE.MathUtils.degToRad(effectiveElevationDeg);
   const cosEl = Math.cos(elRad);
 
   _offsetDir
@@ -392,7 +400,7 @@ export function getCameraRigAtProgress(
     quaternion: outQuaternion,
     rollRadians,
     orbitAzimuthDeg: effectiveAzimuthDeg,
-    elevationDeg: beat.elevationDeg,
+    elevationDeg: effectiveElevationDeg,
     fov,
   };
 }

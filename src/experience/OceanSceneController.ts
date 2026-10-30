@@ -165,7 +165,7 @@ export class OceanSceneController {
     });
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    this.renderer.toneMappingExposure = 1.1;
+    this.renderer.toneMappingExposure = 0.96;
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, this.profile.dprCap));
     this.renderer.setSize(width, height);
     this.renderer.shadowMap.enabled = this.profile.shadows;
@@ -185,7 +185,7 @@ export class OceanSceneController {
     const pmrem = new THREE.PMREMGenerator(this.renderer);
     this.envTexture = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
     this.scene.environment = this.envTexture;
-    this.scene.environmentIntensity = 0.55;
+    this.scene.environmentIntensity = 0.34;
     pmrem.dispose();
 
     this.camera = new THREE.PerspectiveCamera(42, width / height, 0.12, 185);
@@ -567,7 +567,7 @@ export class OceanSceneController {
       this.fog.color.copy(this._fogColor);
       this.fog.density = atmo.fogDensity;
       this.renderer.toneMappingExposure = atmo.exposure;
-      this.scene.environmentIntensity = 0.34 + atmo.hemiIntensity * 0.24;
+      this.scene.environmentIntensity = 0.22 + atmo.hemiIntensity * 0.17;
     }
 
     if (this.bloomPass) {
@@ -683,6 +683,7 @@ export class OceanSceneController {
       this._camTargetLook,
       activeBounds,
       this._camTargetQuat,
+      elapsed,
     );
 
     const camAlpha = this.reducedMotion || this.isSoftwareGl ? 1.0 : 1 - Math.exp(-9.0 * dt);

@@ -157,7 +157,8 @@ test('fish 3D trajectory travels diagonally downward and laterally with natural 
   assert.ok(endFish.position.y < startFish.position.y - 155);
 });
 
-test('spherical orbital camera rig maintains flank/three-quarter azimuth without rear-tail flips and adapts to mobile portrait', () => {
+test('spherical orbital camera completes a 360-degree descent orbit and adapts to mobile portrait', () => {
+  const orbitAngles: number[] = [];
   for (let i = 0; i <= 200; i++) {
     const p = i / 200;
     const fish = getFishPathAtProgress(p);
@@ -168,9 +169,10 @@ test('spherical orbital camera rig maintains flank/three-quarter azimuth without
     const camDesktop = getCameraRigAtProgress(p, 1440 / 900);
     const camMobile = getCameraRigAtProgress(p, 390 / 844);
 
+    orbitAngles.push(camDesktop.orbitAzimuthDeg);
     assert.ok(
-      camDesktop.orbitAzimuthDeg >= 52 && camDesktop.orbitAzimuthDeg <= 124,
-      `Camera azimuth (${camDesktop.orbitAzimuthDeg.toFixed(1)} deg at p=${p}) must stay in flank/3-4 window [52, 124] and never flip through 0 or 180`,
+      camDesktop.orbitAzimuthDeg >= 52 && camDesktop.orbitAzimuthDeg <= 440,
+      `Camera azimuth (${camDesktop.orbitAzimuthDeg.toFixed(1)} deg at p=${p}) must remain within the authored 360-degree descent orbit`,
     );
     assert.ok(Math.abs(camDesktop.quaternion.length() - 1) < 1e-4);
     assert.ok(Math.abs(camMobile.quaternion.length() - 1) < 1e-4);
@@ -183,6 +185,10 @@ test('spherical orbital camera rig maintains flank/three-quarter azimuth without
       `Mobile portrait camera distance (${distMobile.toFixed(2)}) must exceed desktop (${distDesktop.toFixed(2)}) at p=${p}`,
     );
   }
+  assert.ok(
+    Math.max(...orbitAngles) - Math.min(...orbitAngles) > 350,
+    'Camera must sweep at least 350 degrees around the fish over the full descent',
+  );
 });
 
 test('swim kinematics articulates 8-bone smooth spine chain and pectoral fins continuously while scroll velocity is zero', () => {
