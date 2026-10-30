@@ -1,14 +1,22 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { OceanCanvas } from './experience/OceanCanvas';
+import { Suspense, lazy, useCallback, useEffect, useRef, useState } from 'react';
 import { LoaderStateUpdate, TelemetryUpdate } from './experience/OceanSceneController';
 import { OCEAN_CHAPTERS } from './lib/chapterConfig';
 import { OceanAmbienceEngine } from './lib/oceanAudio';
 import { QualityTierOption, detectWebGLSupport } from './lib/qualityTier';
 import { DepthHUD } from './ui/DepthHUD';
 import { LoadingOverlay } from './ui/LoadingOverlay';
-import { MarineFieldNotesDrawer } from './ui/MarineFieldNotesDrawer';
-import { SourceCodeModal } from './ui/SourceCodeModal';
+
 import { WebGLFallback } from './ui/WebGLFallback';
+
+const OceanCanvas = lazy(() =>
+  import('./experience/OceanCanvas').then((module) => ({ default: module.OceanCanvas })),
+);
+const MarineFieldNotesDrawer = lazy(() =>
+  import('./ui/MarineFieldNotesDrawer').then((module) => ({ default: module.MarineFieldNotesDrawer })),
+);
+const SourceCodeModal = lazy(() =>
+  import('./ui/SourceCodeModal').then((module) => ({ default: module.SourceCodeModal })),
+);
 
 function getInitialReducedMotion(): boolean {
   if (typeof window === 'undefined') return false;
@@ -154,12 +162,14 @@ export default function App() {
   return (
     <div className="relative w-full select-none">
       {/* Persistent Single-Owner 3D WebGL Ocean Stage */}
-      <OceanCanvas
-        quality={quality}
-        reducedMotion={reducedMotion}
-        onTelemetry={setTelemetry}
-        onLoaderState={setLoaderState}
-      />
+      <Suspense fallback={null}>
+        <OceanCanvas
+          quality={quality}
+          reducedMotion={reducedMotion}
+          onTelemetry={setTelemetry}
+          onLoaderState={setLoaderState}
+        />
+      </Suspense>
 
       {/* Honest Asset Loading Overlay */}
       <LoadingOverlay loaderState={loaderState} />
@@ -187,15 +197,19 @@ export default function App() {
       />
 
       {/* Optional Collapsible Oceanographer Field Notes Drawer (Closed by Default) */}
-      <MarineFieldNotesDrawer
-        open={notesOpen}
-        chapter={telemetry.chapter}
-        depthMeters={telemetry.depthMeters}
-        onClose={() => setNotesOpen(false)}
-      />
+      <Suspense fallback={null}>
+        <MarineFieldNotesDrawer
+          open={notesOpen}
+          chapter={telemetry.chapter}
+          depthMeters={telemetry.depthMeters}
+          onClose={() => setNotesOpen(false)}
+        />
+      </Suspense>
 
       {/* Interactive Source Code Explorer & ZIP Download Modal */}
-      <SourceCodeModal open={sourceOpen} onClose={() => setSourceOpen(false)} />
+      <Suspense fallback={null}>
+        <SourceCodeModal open={sourceOpen} onClose={() => setSourceOpen(false)} />
+      </Suspense>
 
       {/* Canonical Native Scroll Track (880vh across 8 proportional depth chapters) */}
       <main
